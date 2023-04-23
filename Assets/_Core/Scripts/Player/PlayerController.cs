@@ -1,17 +1,16 @@
 using System.Collections;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Parameters")]
     public float movementSpeed = 5f;
-    public float sprintSpeed = 10f;
+    public float sprintSpeed = 7.5f;
     public float crouchSpeed = 2.5f;
     public float mouseSensitivity = 3f;
-    public float jumpForce = 5f;
+    public float jumpForce = 8f;
     public float crouchHeight = 0.5f;
-    public float gravityForce = -9.81f;
+    public float gravityForce = -15f;
 
     [Header("Ability Parameters")]
     public float dashDistance;
@@ -21,41 +20,53 @@ public class PlayerController : MonoBehaviour
     public float shutterFreezeTime;
     public float shutterForce;
     public bool IsDoubleJumpEnabled;
+    public float dashCooldown = 1.5f;
+    public float shutterCooldown = 1.5f;
 
     [Header("Shooting Parameters")]
-    public float scatterConeAngle = 3f;  // Angle of the scatter cone in degrees
-    public float roundsPerMinute = 300f;  // Number of rounds fired per minute
-    public float reloadTime = 1.5f;  // Time it takes to reload the weapon
-    private float timeBetweenShots;  // Time between shots based on rounds per minute
-    private bool isReloading;  // Flag to indicate if the weapon is currently reloading
-    private float timeSinceLastShot;  // Time elapsed since the last shot
-    private int shotsMade = 0;
+    public float scatterConeAngle = 3f;
+    public float roundsPerMinute = 300f;
+    public float reloadTime = 1.5f; 
     public int shotsMax = 30;
     public bool isProjectile;
-    public ProjectileBase projectile;
+    public ProjectileBase projectilePrefab;
+    public BulletTrace bulletTracePrefab;
 
+    [Header("Other settings")]
     [SerializeField] private float isGroundedCheckDistance = 0.1f;
+    [SerializeField] private int crosshairLength = 50;
+    [SerializeField] private int crosshairWidth = 2;
 
     // Components references
     private CharacterController controller;
     private Camera camera;
     private Transform capsuleTransform;
     private CapsuleCollider capsuleCollider;
-    public BulletTrace bulletTrace;
 
     // Private variables
+    private bool isGrounded;
     private float verticalRotation = 0f;
     private float verticalVelocity = 0f;
-    private bool isCrouching = false;
+    
+    private bool isCrouching;
     private bool isDashing;
-    private bool isGrounded;
     private bool isSliding;
-    private int jumpsMade;
+    private bool isReloading;
+
+    private int jumpsMade = 0;
+    private int shotsMade = 0;
+
     private Vector3 lastMoveDirection;
     private bool isVerticalFreeze;
     private bool isShuttering;
 
-    void Start()
+    private float timeSinceLastShutter = 0;
+    private float timeSinceLastDash = 0;
+    private float timeSinceLastShot = 0;  
+    private float timeBetweenShots; 
+
+
+    private void Start()
     {
         controller = GetComponent<CharacterController>();
         camera = GetComponentInChildren<Camera>();
@@ -65,15 +76,29 @@ public class PlayerController : MonoBehaviour
         timeBetweenShots = 60f / roundsPerMinute;
     }
 
-    void Update()
+    private void Update()
+    {
+        CheckForGround();
+        HandleRotation();
+        HandleMovement();
+        HandleShooting();
+        HandleActions();
+        ApplyGravity();
+    }
+
+    private void CheckForGround()
     {
         isGrounded = IsGrounded(isGroundedCheckDistance);
+
         if (isGrounded)
         {
             jumpsMade = 0;
             verticalVelocity = 0f;
         }
+    }
 
+    private void HandleRotation()
+    {
         // Rotate the player horizontally based on mouse movement
         float horizontalRotation = Input.GetAxis("Mouse X") * mouseSensitivity;
         transform.Rotate(0f, horizontalRotation, 0f);
@@ -82,22 +107,18 @@ public class PlayerController : MonoBehaviour
         verticalRotation -= Input.GetAxis("Mouse Y") * mouseSensitivity;
         verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
         camera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+    }
 
-        // Move the player based on WASD input
-        float forwardSpeed = Input.GetAxis("Vertical") * movementSpeed;
-        float sidewaysSpeed = Input.GetAxis("Horizontal") * movementSpeed;
+    private void HandleMovement()
+    {
+        if (!isDashing && !isShuttering && !isSliding)
+        {
+            // Move the player based on WASD input
+            float forwardSpeed = Input.GetAxis("Vertical") * movementSpeed;
+            float sidewaysSpeed = Input.GetAxis("Horizontal") * movementSpeed;
 
-        if (Input.GetKeyDown(KeyCode.C) && Input.GetKey(KeyCode.LeftShift) && !isSliding)
-        {
-            StartCrouch();
-            isCrouching = false;
-            isSliding = true;
-            StartCoroutine(C_Slide(lastMoveDirection));
-        }
-        else if (!isSliding)
-        {
-            // SHIFTING
-            if (Input.GetKey(KeyCode.LeftShift) && !isCrouching)
+            // SPRINT
+            if (Input.GetKey(KeyCode.LeftShift) && isGrounded)
             {
                 forwardSpeed *= sprintSpeed / movementSpeed;
                 sidewaysSpeed *= sprintSpeed / movementSpeed;
@@ -111,26 +132,51 @@ public class PlayerController : MonoBehaviour
                     StartCrouch();
                 }
 
-                // on crouch logic
+                // On Crouch logic
                 forwardSpeed *= crouchSpeed / movementSpeed;
                 sidewaysSpeed *= crouchSpeed / movementSpeed;
-                //
             }
             else if (isCrouching)
             {
                 StopCrouch();
             }
+
+            Vector3 speed = new Vector3(sidewaysSpeed, 0f, forwardSpeed);
+            speed = transform.rotation * speed;
+            controller.Move(speed * Time.deltaTime);
+            lastMoveDirection = speed.normalized;
+        }
+    }
+
+    private void HandleActions()
+    {
+        if (Input.GetKeyDown(KeyCode.C) && Input.GetKey(KeyCode.LeftShift) && !isSliding)
+        {
+            StartSlide();
+            StartCoroutine(C_Slide(lastMoveDirection));
         }
 
-
-        // JUMP
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            print("enter");
             Jump();
         }
 
-        if(Input.GetMouseButton(0) && !isReloading && timeSinceLastShot >= timeBetweenShots)
+        timeSinceLastDash += Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.E) && !isDashing && timeSinceLastDash > dashCooldown)
+        {
+            StartCoroutine(C_Dash(lastMoveDirection));
+        }
+
+        timeSinceLastShutter += Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.Q) && !isShuttering && timeSinceLastShutter > shutterCooldown)
+        {
+            StartCoroutine(C_Shutter());
+        }
+    }
+
+    private void HandleShooting()
+    {
+        if (Input.GetMouseButton(0) && !isReloading && timeSinceLastShot >= timeBetweenShots)
         {
             Shoot();
             timeSinceLastShot = 0f;
@@ -142,34 +188,6 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(Reload());
         }
-
-        if (Input.GetKeyDown(KeyCode.F) && !isDashing)
-        {
-            StartCoroutine(C_Dash(lastMoveDirection));
-        }
-
-        if (Input.GetKeyDown(KeyCode.G) && !isShuttering)
-        {
-            StartCoroutine(C_Shutter());
-        }
-
-        if (!isDashing && !isShuttering && !isSliding)
-        {
-            Vector3 speed = new Vector3(sidewaysSpeed, 0f, forwardSpeed);
-            speed = transform.rotation * speed;
-            controller.Move(speed * Time.deltaTime);
-            lastMoveDirection = speed.normalized;
-        }
-       
-
-        // Apply gravity to the player
-        if (!isGrounded && !isVerticalFreeze)
-        {
-            verticalVelocity += gravityForce * Time.deltaTime;
-        }
-        
-        controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
-        
     }
 
     private IEnumerator Reload()
@@ -182,6 +200,15 @@ public class PlayerController : MonoBehaviour
         shotsMade = 0;
     }
 
+    private void ApplyGravity()
+    {
+        if (!isGrounded && !isVerticalFreeze)
+        {
+            verticalVelocity += gravityForce * Time.deltaTime;
+        }
+        controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+    }
+
     private IEnumerator C_Dash(Vector3 dashDir)
     {
         isDashing = true;
@@ -191,9 +218,6 @@ public class PlayerController : MonoBehaviour
         Vector3 point1 = capsuleCollider.gameObject.transform.position + capsuleCollider.center + Vector3.up * capsuleCollider.height / 2f - Vector3.up * capsuleCollider.radius;
         Vector3 point2 = capsuleCollider.gameObject.transform.position + capsuleCollider.center - Vector3.up * capsuleCollider.height / 2f + Vector3.up * capsuleCollider.radius;
         
-        //Ray ray = new Ray(transform.position + new Vector3(0, capsuleCollider.height / 2, 0), dashDir);
-
-        //if(Physics.Raycast(ray, out var hitInfo, dashDistance))
         if(Physics.CapsuleCast(point1, point2, capsuleCollider.radius, dashDir, out var hitInfo, dashDistance))
         {
             targetPosition = transform.position + dashDir * (hitInfo.distance - capsuleCollider.radius);
@@ -206,8 +230,6 @@ public class PlayerController : MonoBehaviour
         targetPosition = new Vector3(targetPosition.x, transform.position.y, targetPosition.z);
         while(transform.position != targetPosition)
         {
-            Debug.DrawLine(transform.position, targetPosition, Color.red);
-            //transform.position = Vector3.MoveTowards(transform.position, targetPosition, dashSpeed * Time.deltaTime);
             controller.Move(Vector3.MoveTowards(transform.position, targetPosition, dashSpeed * Time.deltaTime) - transform.position);
             verticalVelocity = 0;
             yield return null;
@@ -215,24 +237,14 @@ public class PlayerController : MonoBehaviour
 
         isVerticalFreeze = false;
         isDashing = false;
+        timeSinceLastDash = 0;
     }
 
     private IEnumerator C_Slide(Vector3 slideDir)
     {
-        //Ray ray = new Ray(transform.position + new Vector3(0, capsuleCollider.height / 2, 0), dashDir);
-        //if (Physics.Raycast(ray, out var hitInfo, dashDistance))
-        //{
-        //    targetPosition = transform.position + dashDir * (hitInfo.distance - capsuleCollider.radius);
-        //}
-        //else
-        //{
-        //    targetPosition = transform.position + dashDir * dashDistance;
-        //}
-
         float distanceSlided = 0f;
         while (distanceSlided < slideDistance)
-        {
-            //transform.position = Vector3.MoveTowards(transform.position, targetPosition, dashSpeed * Time.deltaTime);
+        {       
             var distanceDelta = slideSpeed * Time.deltaTime;
             distanceSlided += distanceDelta;
             controller.Move(slideDir.normalized * distanceDelta);
@@ -240,18 +252,22 @@ public class PlayerController : MonoBehaviour
         }
 
         isSliding = false;
-        StopCrouch();
+        StopSlide();
     }
 
     private IEnumerator C_Shutter()
     {
-        verticalVelocity = 0;
-        isVerticalFreeze = true;
         isShuttering = true;
+        isVerticalFreeze = true;
+        verticalVelocity = 0;
+
         yield return new WaitForSeconds(shutterFreezeTime);
+        // Shutter
         verticalVelocity = -shutterForce;
-        isVerticalFreeze = false;
+                
+        timeSinceLastShutter = 0;
         isShuttering = false;
+        isVerticalFreeze = false;
     }
 
     private void Jump()
@@ -270,52 +286,92 @@ public class PlayerController : MonoBehaviour
 
     private void StartCrouch()
     {
-        print("1");
+        // moving camera
         camera.transform.localPosition -= new Vector3(0, 0.5f, 0);
-
+        // adjusting controller's trigger height
         controller.center -= new Vector3(0, 0.5f, 0);
         controller.height = crouchHeight;
-        // setting capsule crouching height
+        // setting capsule mesh crouching height
         var scale = capsuleTransform.localScale;
         scale.y = 0.5f;
         capsuleTransform.localScale = scale;
-          
+        // setting capsule mesh position
         var pos = capsuleTransform.localPosition;
         pos.y = 0.5f;
         capsuleTransform.localPosition = pos;
+        // setting actual colliders height
         capsuleCollider.height = 0.5f;
+
         isCrouching = true;
     }
 
     private void StopCrouch()
     {
-        print("2");
+        // moving camera
         camera.transform.localPosition += new Vector3(0, 0.5f, 0);
-
-        isCrouching = false;
+        // adjusting controller's trigger height
+        controller.center += new Vector3(0, 0.5f, 0);
         controller.height = 2f;
-
+        // setting capsule mesh crouching height
         var scale = capsuleTransform.localScale;
         scale.y = 1f;
         capsuleTransform.localScale = scale;
-
+        // setting capsule mesh position
         var pos = capsuleTransform.localPosition;
         pos.y = 1;
         capsuleTransform.localPosition = pos;
-
+        // setting actual colliders height
         capsuleCollider.height = 1f;
+
+        isCrouching = false;
+    }
+
+    private void StartSlide()
+    {
+        // moving camera
+        camera.transform.localPosition -= new Vector3(0, 0.5f, 0);
+        // adjusting controller's trigger height
+        controller.center -= new Vector3(0, 0.5f, 0);
+        controller.height = crouchHeight;
+        // setting capsule mesh crouching height
+        var scale = capsuleTransform.localScale;
+        scale.y = 0.5f;
+        capsuleTransform.localScale = scale;
+        // setting capsule mesh position
+        var pos = capsuleTransform.localPosition;
+        pos.y = 0.5f;
+        capsuleTransform.localPosition = pos;
+        // setting actual colliders height
+        capsuleCollider.height = 0.5f;
+
+        isSliding = true;
+    }
+
+    private void StopSlide()
+    {
+        // moving camera
+        camera.transform.localPosition += new Vector3(0, 0.5f, 0);
+        // adjusting controller's trigger height
         controller.center += new Vector3(0, 0.5f, 0);
+        controller.height = 2f;
+        // setting capsule mesh crouching height
+        var scale = capsuleTransform.localScale;
+        scale.y = 1f;
+        capsuleTransform.localScale = scale;
+        // setting capsule mesh position
+        var pos = capsuleTransform.localPosition;
+        pos.y = 1;
+        capsuleTransform.localPosition = pos;
+        // setting actual colliders height
+        capsuleCollider.height = 1f;
+
+        isSliding = false;
     }
 
     public bool IsGrounded(float groundDistance = 0.1f)
     {
-        // Calculate the center of the game object
         Vector3 center = transform.position + capsuleCollider.center;
-
-        // Create a raycast from the center of the game object downwards
         Ray ray = new Ray(center, Vector3.down);
-
-        // Check if the ray hits any collider within the given distance
         return Physics.Raycast(ray, groundDistance);
     }
 
@@ -333,14 +389,14 @@ public class PlayerController : MonoBehaviour
         
         if(isProjectile)
         {
-            var prj = Instantiate(projectile, camera.transform.position + camera.transform.forward * 2, Quaternion.identity);
-            prj.Init(shootDir, 2);
+            var projectile = Instantiate(projectilePrefab, camera.transform.position + camera.transform.forward * 2, Quaternion.identity);
+            projectile.Init(shootDir, 2);
         }
         else
         {
             RaycastHit hit;
-            var ray = new Ray(camera.transform.position, shootDir);
             Vector3 bulletReachPoint;
+            var ray = new Ray(camera.transform.position, shootDir);
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))
             {
                 bulletReachPoint = hit.point;
@@ -353,13 +409,11 @@ public class PlayerController : MonoBehaviour
             {
                 bulletReachPoint = default;
             }
-            var trace = Instantiate(bulletTrace);
+            // Create a trace for bullet
+            var trace = Instantiate(bulletTracePrefab);
             trace.Init(shootPoint, shootDir, bulletReachPoint);
         }
     }
-
-    public int lineLength = 50;
-    public int lineWidth = 2;
 
     private void OnGUI()
     {
@@ -368,7 +422,7 @@ public class PlayerController : MonoBehaviour
         int centerX = Screen.width / 2;
         int centerY = Screen.height / 2;
 
-        GUI.DrawTexture(new Rect(centerX - (lineLength / 2), centerY - (lineWidth / 2), lineLength, lineWidth), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(centerX - (lineWidth / 2), centerY - (lineLength / 2), lineWidth, lineLength), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(centerX - (crosshairLength / 2), centerY - (crosshairWidth / 2), crosshairLength, crosshairWidth), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(centerX - (crosshairWidth / 2), centerY - (crosshairLength / 2), crosshairWidth, crosshairLength), Texture2D.whiteTexture);
     }
 }
