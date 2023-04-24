@@ -63,8 +63,9 @@ public class PlayerController : MonoBehaviour
     private float timeSinceLastShutter = 0;
     private float timeSinceLastDash = 0;
     private float timeSinceLastShot = 0;  
-    private float timeBetweenShots; 
+    private float timeBetweenShots;
 
+    [SerializeField] private Transform shootingPoint;
 
     private void Start()
     {
@@ -384,8 +385,8 @@ public class PlayerController : MonoBehaviour
                                                           Random.Range(-scatterConeAngle, scatterConeAngle),
                                                           0f);
 
-        var shootPoint = camera.transform.position - new Vector3(0f, 0.2f, 0f);
-        var shootDir = scatterConeRotation * camera.transform.forward;
+        var shootPoint = shootingPoint.position;
+        var shootDir =  camera.transform.forward;
         
         if(isProjectile)
         {
@@ -413,6 +414,12 @@ public class PlayerController : MonoBehaviour
             var trace = Instantiate(bulletTracePrefab);
             trace.Init(shootPoint, shootDir, bulletReachPoint);
         }
+    }
+
+    public void ReceiveDamage(float damage)
+    {
+        // implement health and damage
+        print($"Damage taken: {damage}");
     }
 
     private void OnGUI()

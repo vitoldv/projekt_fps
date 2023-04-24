@@ -145,4 +145,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxShootingDistance: 1000
-  timeAlive: 1
+  timeAlive: 100
