@@ -1,6 +1,8 @@
+using Assets._Core.Scripts;
+using Assets._Core.Scripts.Player.ShootingHandlers;
 using System.Collections;
 using UnityEngine;
-
+using Assets._Core.Scripts.Player.ShootingParameters;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Parameters")]
@@ -51,10 +53,8 @@ public class PlayerController : MonoBehaviour
     private bool isCrouching;
     private bool isDashing;
     private bool isSliding;
-    private bool isReloading;
 
     private int jumpsMade = 0;
-    private int shotsMade = 0;
 
     private Vector3 lastMoveDirection;
     private bool isVerticalFreeze;
@@ -62,8 +62,8 @@ public class PlayerController : MonoBehaviour
 
     private float timeSinceLastShutter = 0;
     private float timeSinceLastDash = 0;
-    private float timeSinceLastShot = 0;  
-    private float timeBetweenShots;
+
+    private ShootingHandlerBase currentShootingHandler;
 
     [SerializeField] private Transform shootingPoint;
 
@@ -74,7 +74,16 @@ public class PlayerController : MonoBehaviour
         capsuleTransform = GetComponentInChildren<MeshRenderer>().gameObject.transform;
         capsuleCollider = GetComponentInChildren<CapsuleCollider>();
         Cursor.lockState = CursorLockMode.Locked;
-        timeBetweenShots = 60f / roundsPerMinute;
+        currentShootingHandler = new HitScanShootingHandler(
+            new HitScanShootingParameters
+            {
+                roundsPerMinute = this.roundsPerMinute, 
+                reloadTime = this.reloadTime,
+                gunShopCapacity = this.shotsMax,
+                playerController = this,
+                camera = this.camera,
+                bulletTracePrefab = this.bulletTracePrefab
+            });
     }
 
     private void Update()
@@ -177,28 +186,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleShooting()
     {
-        if (Input.GetMouseButton(0) && !isReloading && timeSinceLastShot >= timeBetweenShots)
-        {
-            Shoot();
-            timeSinceLastShot = 0f;
-        }
-
-        timeSinceLastShot += Time.deltaTime;
-
-        if ((shotsMade == shotsMax || Input.GetKeyDown(KeyCode.R)) && !isReloading)
-        {
-            StartCoroutine(Reload());
-        }
-    }
-
-    private IEnumerator Reload()
-    {
-        isReloading = true;
-
-        yield return new WaitForSeconds(reloadTime);
-
-        isReloading = false;
-        shotsMade = 0;
+        currentShootingHandler.Update();
     }
 
     private void ApplyGravity()
@@ -376,46 +364,6 @@ public class PlayerController : MonoBehaviour
         return Physics.Raycast(ray, groundDistance);
     }
 
-    private void Shoot()
-    {
-        shotsMade++;
-
-        // Calculate the direction of the bullet based on the scatter cone angle
-        Quaternion scatterConeRotation = Quaternion.Euler(Random.Range(-scatterConeAngle, scatterConeAngle),
-                                                          Random.Range(-scatterConeAngle, scatterConeAngle),
-                                                          0f);
-
-        var shootPoint = shootingPoint.position;
-        var shootDir =  camera.transform.forward;
-        
-        if(isProjectile)
-        {
-            var projectile = Instantiate(projectilePrefab, camera.transform.position + camera.transform.forward * 2, Quaternion.identity);
-            projectile.Init(shootDir, 2);
-        }
-        else
-        {
-            RaycastHit hit;
-            Vector3 bulletReachPoint;
-            var ray = new Ray(camera.transform.position, shootDir);
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity))
-            {
-                bulletReachPoint = hit.point;
-                if (hit.collider.TryGetComponent<IShootingTarget>(out var target) && target != null)
-                {
-                    target.OnHit(hit.point);
-                }
-            }
-            else
-            {
-                bulletReachPoint = default;
-            }
-            // Create a trace for bullet
-            var trace = Instantiate(bulletTracePrefab);
-            trace.Init(shootPoint, shootDir, bulletReachPoint);
-        }
-    }
-
     public void ReceiveDamage(float damage)
     {
         // implement health and damage
@@ -424,7 +372,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsReloading: {isReloading}. IsSliding {isSliding}");
+        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsSliding {isSliding}");
         
         int centerX = Screen.width / 2;
         int centerY = Screen.height / 2;
