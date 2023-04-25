@@ -1,16 +1,18 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using _Core;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
-public class BulletTrace : MonoBehaviour
+public class BulletTrace : MonoBehaviour, IPoolableObject
 {
     public float maxShootingDistance;
     public float timeAlive;
+
     private LineRenderer bulletTraceLineRenderer;
     private Material material;
+
     private bool isInitialized;
+    private float timePassed = 0f;
+
     private void Awake()
     {
         bulletTraceLineRenderer = GetComponent<LineRenderer>();
@@ -28,11 +30,10 @@ public class BulletTrace : MonoBehaviour
         {
             bulletTraceLineRenderer.SetPosition(1, shootingPoint + shootingDir * maxShootingDistance);
         }
-        //StartCoroutine(C_DestroyInSeconds(timeAlive));
         isInitialized = true;
     }
 
-    private float timePassed = 0f;
+
     private void Update()
     {
         if (!isInitialized) return;
@@ -40,12 +41,28 @@ public class BulletTrace : MonoBehaviour
         timePassed += Time.deltaTime;
         if (timePassed >= timeAlive)
         {
-            Destroy(gameObject);
-
+            Disable();
         }
 
         var color = material.color;
         color.a = color.a - (100 / timeAlive * Time.deltaTime);
         material.color = color;
+    }
+
+    public void Enable()
+    {
+        gameObject.SetActive(true);
+    }
+
+    public void Disable()
+    {
+        isInitialized = false;
+        timePassed = 0;
+        gameObject.SetActive(false);
+    }
+
+    public bool IsActive()
+    {
+        return gameObject.activeSelf;
     }
 }

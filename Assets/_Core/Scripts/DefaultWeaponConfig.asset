@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8158bf018b53f894db4f9e480dd1098b, type: 3}
+  m_Name: DefaultWeaponConfig
+  m_EditorClassIdentifier: 
+  pistolRoundsPerMinute: 180
+  pistolReloadTime: 1.5
+  pistolCapacity: 21
+  pistolDamage: 3
+  pistolBulletTracePrefab: {fileID: 4398664931950164233, guid: 793e5ff2489619342a2899c89f41b9ff,
+    type: 3}
+  rifleRoundsPerMinute: 300
+  rifleReloadTime: 2
+  rifleCapacity: 30
+  rifleDamage: 5
+  rifleBulletTracePrefab: {fileID: 4398664931950164233, guid: 793e5ff2489619342a2899c89f41b9ff,
+    type: 3}
+  shotgunRoundsPerMinute: 70
+  shotgunReloadTime: 2.5
+  shotgunCapacity: 12
+  shotgunDamage: 3
+  shotgunScatterConeAngle: 4
+  bfgRoundsPerMinute: 12
+  bfgReloadTime: 5
+  bfgCapacity: 2
+  bfgDamage: 10
+  projectileSpeed: 2
+  bfgProjectilePrefab: {fileID: 8392839022747653358, guid: 4675c293cbceac9418a6cf54d6df84dc,
+    type: 3}
+  explosionRadius: 5
+  railgunRoundsPerMinute: 26
+  railgunReloadTime: 4
+  railgunCapacity: 10
+  railgunDamage: 15
+  railgunBulletTracePrefab: {fileID: 4398664931950164233, guid: 793e5ff2489619342a2899c89f41b9ff,
+    type: 3}

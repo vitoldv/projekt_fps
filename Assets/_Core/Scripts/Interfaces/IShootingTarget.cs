@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
+using Assets._Core.Scripts.Player;
 using UnityEngine;
 
 public interface IShootingTarget
 {
-    public void OnHit(Vector3 hitPoint);
+    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType);
 }

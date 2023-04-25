@@ -1,10 +1,11 @@
+using Assets._Core.Scripts.Player;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SimpleShootingTarget : MonoBehaviour, IShootingTarget
 {
-    public void OnHit(Vector3 hitPoint)
+    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
     {
         var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = hitPoint;

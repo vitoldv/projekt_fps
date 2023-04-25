@@ -14,10 +14,10 @@ TagManager:
   - UI
   - 
   - Weapon
-  - Character
+  - Player
   - Ground
-  - 
-  - 
+  - Collectibles
+  - Enemies
   - 
   - 
   - 

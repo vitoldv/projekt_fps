@@ -1,4 +1,5 @@
 using _Core;
+using Assets._Core.Scripts.Player;
 using System;
 using UnityEngine;
 using UnityEngine.AI;
@@ -13,47 +14,47 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
     private readonly int IsDeadHash = Animator.StringToHash("IsDead");
     private readonly int IsAttackingHash = Animator.StringToHash("IsAttacking");
 
-    [SerializeField] private float _initialHp;
-    [SerializeField] private float _corpseLifetime;
+    [SerializeField] private float initialHp;
+    [SerializeField] private float corpseLifetime;
     [Header("Movement")]
-    [SerializeField] private float _walkSpeed;
-    [SerializeField] private float _rotationSpeed;
+    [SerializeField] private float walkSpeed;
+    [SerializeField] private float rotationSpeed;
     [Header("Attack")]
-    [SerializeField] private float _attackDamage;
-    [SerializeField] private float _attackDistance;
-    [SerializeField] private float _firstAttackDelay;
-    [SerializeField] private float _repeatedAttackDelay;
+    [SerializeField] private float attackDamage;
+    [SerializeField] private float attackDistance;
+    [SerializeField] private float firstAttackDelay;
+    [SerializeField] private float repeatedAttackDelay;
 
-    private Transform _targetTransform;
+    private Transform targetTransform;
     
     private Animator _animator;
-    private CapsuleCollider _collider;
-    private NavMeshAgent _navAgent;
+    private CapsuleCollider collider;
+    private NavMeshAgent navAgent;
 
-    private bool _isFirstAttackMade;
-    private float _timer;
+    private bool isFirstAttackMade;
+    private float timer;
 
     public float HP { get; private set; }
     public bool IsDead { get; private set; }
-    public bool IsWalking => _navAgent.enabled;
+    public bool IsWalking => navAgent.enabled;
     public bool IsAttacking { get; private set; }
 
     private void Awake()
     {
         _animator = GetComponent<Animator>();
-        _collider = GetComponent<CapsuleCollider>();
-        _navAgent = GetComponent<NavMeshAgent>();
+        collider = GetComponent<CapsuleCollider>();
+        navAgent = GetComponent<NavMeshAgent>();
     }
 
     public void Initialize(Transform target)
     {
-        _targetTransform = target;
-        SetSpeed(_walkSpeed);
+        targetTransform = target;
+        SetSpeed(walkSpeed);
         EnableWalking();
         EnableCollider();
-        HP = _initialHp;
-        _timer = 0;
-        _isFirstAttackMade = false;
+        HP = initialHp;
+        timer = 0;
+        isFirstAttackMade = false;
         IsDead = false;
     }
 
@@ -61,8 +62,8 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
     {
         if (IsDead)
         {
-            _timer += Time.deltaTime;
-            if (_timer >= _corpseLifetime)
+            timer += Time.deltaTime;
+            if (timer >= corpseLifetime)
             {
                 Disable();
             }
@@ -82,13 +83,13 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
 
     private void HandleAttack()
     {
-        _timer += Time.deltaTime;
-        if (!_isFirstAttackMade && _timer >= _firstAttackDelay)
+        timer += Time.deltaTime;
+        if (!isFirstAttackMade && timer >= firstAttackDelay)
         {
             Attack();
-            _isFirstAttackMade = true;
+            isFirstAttackMade = true;
         }
-        if (_isFirstAttackMade && _timer >= _repeatedAttackDelay)
+        if (isFirstAttackMade && timer >= repeatedAttackDelay)
         {
             Attack();
         }
@@ -96,7 +97,7 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
 
     private void CheckIsAttacking()
     {
-        if (GetDistanceToTarget() <= _attackDistance)
+        if (GetDistanceToTarget() <= attackDistance)
         {
             if (!IsAttacking)
             {
@@ -111,32 +112,32 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
 
     private void Attack()
     {
-        if (_targetTransform.TryGetComponent(out PlayerController player))
+        if (targetTransform.TryGetComponent(out PlayerController player))
         {
-            player.ReceiveDamage(_attackDamage);
+            player.ReceiveDamage(attackDamage);
         }
-        _timer = 0;
+        timer = 0;
     }
 
     private void LookOnTarget()
     {
-        Vector3 direction = (_targetTransform.position - transform.position).normalized;
+        Vector3 direction = (targetTransform.position - transform.position).normalized;
         direction.y = 0;
         Quaternion lookRotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * _rotationSpeed);
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
     }
 
     private void UpdateTargetPosition()
     {
-        _navAgent.SetDestination(_targetTransform.position);
+        navAgent.SetDestination(targetTransform.position);
     }
 
     private void StartAttacking()
     {
         IsAttacking = true;
         //_animator.SetBool(IsAttackingHash, true);
-        _timer = 0;
-        _isFirstAttackMade = false;
+        timer = 0;
+        isFirstAttackMade = false;
         DisableWalking();
     }
 
@@ -144,7 +145,7 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
     {
         IsAttacking = false;
         //_animator.SetBool(IsAttackingHash, false);
-        SetSpeed(_walkSpeed);
+        SetSpeed(walkSpeed);
         EnableWalking();
     }
 
@@ -165,43 +166,43 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
         DisableWalking();
         StopAttacking();
         OnDeath?.Invoke(this);
-        _timer = 0;
+        timer = 0;
     }
 
     private void EnableWalking()
     {
-        _navAgent.enabled = true;
+        navAgent.enabled = true;
         //_animator.SetBool(IsWalkingHash, true);
     }
     private void DisableWalking()
     {
-        _navAgent.enabled = false;
+        navAgent.enabled = false;
         //_animator.SetBool(IsWalkingHash, false);
     }
 
     private void EnableCollider()
     {
-        _collider.enabled = true;
+        collider.enabled = true;
     }
 
     private void DisableCollider()
     {
-        _collider.enabled = false;
+        collider.enabled = false;
     }
 
     private void SetSpeed(float speed)
     {
-        _navAgent.speed = speed;
+        navAgent.speed = speed;
     }
 
     private float GetDistanceToTarget()
     {
-        return Vector3.Distance(transform.position, _targetTransform.position);
+        return Vector3.Distance(transform.position, targetTransform.position);
     }
 
     public void SetTarget(Transform targetTransform)
     {
-        _targetTransform = targetTransform;
+        this.targetTransform = targetTransform;
     }
 
     public void Enable()
@@ -219,8 +220,8 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
         return gameObject.activeInHierarchy;
     }
 
-    public void OnHit(Vector3 hitPoint)
+    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
     {
-        throw new System.NotImplementedException();
+        ReceiveDamage(damage);
     }
 }

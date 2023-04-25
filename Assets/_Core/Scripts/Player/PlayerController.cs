@@ -3,8 +3,20 @@ using Assets._Core.Scripts.Player.ShootingHandlers;
 using System.Collections;
 using UnityEngine;
 using Assets._Core.Scripts.Player.ShootingParameters;
-public class PlayerController : MonoBehaviour
+using System;
+using _Core;
+using Assets._Core.Scripts.Player;
+using Unity.VisualScripting.Dependencies.NCalc;
+
+public partial class PlayerController : MonoBehaviour
 {
+    public event Action PlayerDied;
+    public event Action<WeaponType> WeaponChanged;
+
+    [Header("Gameplay Parameters")]
+    public float MaxHP;
+    public float CurrentHP;
+
     [Header("Movement Parameters")]
     public float movementSpeed = 5f;
     public float sprintSpeed = 7.5f;
@@ -24,6 +36,8 @@ public class PlayerController : MonoBehaviour
     public bool IsDoubleJumpEnabled;
     public float dashCooldown = 1.5f;
     public float shutterCooldown = 1.5f;
+    public float shutterRadius = 2;
+    public float shutterDamage = 2;
 
     [Header("Shooting Parameters")]
     public float scatterConeAngle = 3f;
@@ -34,10 +48,15 @@ public class PlayerController : MonoBehaviour
     public ProjectileBase projectilePrefab;
     public BulletTrace bulletTracePrefab;
 
+    private WeaponType unlockedWeapons = (WeaponType)31;
+    private WeaponType currentWeapon = 0;
+
     [Header("Other settings")]
     [SerializeField] private float isGroundedCheckDistance = 0.1f;
+    [SerializeField] private LayerMask enemiesLayer;
     [SerializeField] private int crosshairLength = 50;
     [SerializeField] private int crosshairWidth = 2;
+    [SerializeField] private int initialAmmoAmountDebug = 45;
 
     // Components references
     private CharacterController controller;
@@ -63,7 +82,7 @@ public class PlayerController : MonoBehaviour
     private float timeSinceLastShutter = 0;
     private float timeSinceLastDash = 0;
 
-    private ShootingHandlerBase currentShootingHandler;
+    private ShootingHandlerBase shootingHandler;
 
     [SerializeField] private Transform shootingPoint;
 
@@ -74,16 +93,17 @@ public class PlayerController : MonoBehaviour
         capsuleTransform = GetComponentInChildren<MeshRenderer>().gameObject.transform;
         capsuleCollider = GetComponentInChildren<CapsuleCollider>();
         Cursor.lockState = CursorLockMode.Locked;
-        currentShootingHandler = new HitScanShootingHandler(
-            new HitScanShootingParameters
-            {
-                roundsPerMinute = this.roundsPerMinute, 
-                reloadTime = this.reloadTime,
-                gunShopCapacity = this.shotsMax,
-                playerController = this,
-                camera = this.camera,
-                bulletTracePrefab = this.bulletTracePrefab
-            });
+        SelectWeapon(WeaponType.Pistol);
+        //currentShootingHandler = new HitScanShootingHandler(
+        //    new HitScanShootingHandlerArgs
+        //    {
+        //        roundsPerMinute = this.roundsPerMinute, 
+        //        reloadTime = this.reloadTime,
+        //        gunShopCapacity = this.shotsMax,
+        //        playerController = this,
+        //        camera = this.camera,
+        //        bulletTracePrefab = this.bulletTracePrefab
+        //    });
     }
 
     private void Update()
@@ -104,6 +124,10 @@ public class PlayerController : MonoBehaviour
         {
             jumpsMade = 0;
             verticalVelocity = 0f;
+            if(isShuttering)
+            {
+                Shutter();              
+            }
         }
     }
 
@@ -182,11 +206,69 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(C_Shutter());
         }
+
+        HandleWeaponSelection();
+    }
+
+    private void HandleWeaponSelection()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            SelectWeapon(WeaponType.Pistol);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            SelectWeapon(WeaponType.Rifle);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            SelectWeapon(WeaponType.Shotgun);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            SelectWeapon(WeaponType.BFG);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            SelectWeapon(WeaponType.Railgun);
+        }
+    }
+
+    private void SelectWeapon(WeaponType weapon)
+    {
+        if(unlockedWeapons.HasFlag(weapon) && currentWeapon != weapon)
+        {
+            currentWeapon = weapon;
+            ShootingHandlerArgs shootingHandlerArgs = GameManager.CurrentWeaponConfiguration.GetShootingHandlerArgsForWeapon(weapon);
+            shootingHandlerArgs.playerController = this;
+            shootingHandlerArgs.camera = this.camera;
+            shootingHandlerArgs.initialAmmoAmount = initialAmmoAmountDebug;
+            switch (weapon)
+            {
+                case WeaponType.Pistol:
+                    shootingHandler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
+                    break;
+                case WeaponType.Rifle:
+                    shootingHandler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
+                    break;
+                case WeaponType.Shotgun:
+                    shootingHandler = new FractionShootingHandler((FractionShootingHandlerArgs)shootingHandlerArgs);
+                    break;
+                case WeaponType.BFG:
+                    shootingHandler = new ProjectileShootingHandler((ProjectileShootingHandlerArgs)shootingHandlerArgs);
+                    break;
+                case WeaponType.Railgun:
+                    shootingHandler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
+                    break;
+            }
+            
+            WeaponChanged?.Invoke(weapon);
+        }
     }
 
     private void HandleShooting()
     {
-        currentShootingHandler.Update();
+        shootingHandler.Update();
     }
 
     private void ApplyGravity()
@@ -251,10 +333,25 @@ public class PlayerController : MonoBehaviour
         verticalVelocity = 0;
 
         yield return new WaitForSeconds(shutterFreezeTime);
+        
         // Shutter
-        verticalVelocity = -shutterForce;
-                
-        timeSinceLastShutter = 0;
+        verticalVelocity = -shutterForce;               
+    }
+
+    private void Shutter()
+    {
+        var colliders = Physics.OverlapSphere(transform.position, shutterRadius, enemiesLayer);
+        foreach (var collider in colliders)
+        {
+            if (collider.gameObject.TryGetComponent<IShootingTarget>(out var shootingTarget))
+            {
+                Vector3 hitPoint = collider.ClosestPoint(transform.position);
+                float distanceToObject = Vector3.Distance(hitPoint, transform.position);
+                // the damage is less the further the object from epicenter
+                float actualDamage = shutterDamage * (1 - distanceToObject / shutterRadius);
+                shootingTarget.OnHit(hitPoint, actualDamage, DamageType.Explosion);
+            }
+        }
         isShuttering = false;
         isVerticalFreeze = false;
     }
@@ -364,15 +461,44 @@ public class PlayerController : MonoBehaviour
         return Physics.Raycast(ray, groundDistance);
     }
 
-    public void ReceiveDamage(float damage)
+    public void ReceiveDamage(float damageAmount)
     {
-        // implement health and damage
-        print($"Damage taken: {damage}");
+        CurrentHP -= damageAmount;
+        if(CurrentHP <= 0)
+        {
+            Die();
+        }
     }
+
+    public void Heal(float healAmount)
+    {
+        if(healAmount > MaxHP - CurrentHP)
+        {
+            CurrentHP = MaxHP;
+        }
+        else
+        {
+            CurrentHP += healAmount;
+        }
+    }
+
+    public void GetAmmo(int ammoAmount, WeaponType weaponType)
+    {
+        print($"Get ammo {ammoAmount} for {weaponType}");
+    }
+
+    public void Die()
+    {
+        PlayerDied?.Invoke();
+    }
+
+
 
     private void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsSliding {isSliding}");
+        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsReloading {shootingHandler.isReloading}. "
+            + $"Current weapon: {currentWeapon}. {shootingHandler.CurrentAmmoAmount}/{shootingHandler.GunShopCapacity} : {shootingHandler.CurrentAmmoAmountTotal}"
+            + $"HP: {CurrentHP}");
         
         int centerX = Screen.width / 2;
         int centerY = Screen.height / 2;

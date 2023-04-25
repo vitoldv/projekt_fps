@@ -8,7 +8,7 @@ namespace Assets._Core.Scripts.Player.ShootingHandlers
     {
         protected BulletTrace bulletTracePrefab;
 
-        public HitScanShootingHandler(HitScanShootingParameters shootingParameters) 
+        public HitScanShootingHandler(HitScanShootingHandlerArgs shootingParameters) 
             : base(shootingParameters)
         {
             this.bulletTracePrefab = shootingParameters.bulletTracePrefab;
@@ -16,7 +16,6 @@ namespace Assets._Core.Scripts.Player.ShootingHandlers
 
         protected override void Shoot()
         {
-            Debug.Log("sdf");
             var shootPoint = camera.transform.position;
             var shootDir = camera.transform.forward;
             RaycastHit hit;
@@ -27,7 +26,7 @@ namespace Assets._Core.Scripts.Player.ShootingHandlers
                 bulletReachPoint = hit.point;
                 if (hit.collider.TryGetComponent<IShootingTarget>(out var target) && target != null)
                 {
-                    target.OnHit(hit.point);
+                    target.OnHit(hit.point, damage, DamageType.Shot);
                 }
             }
             else
@@ -35,7 +34,7 @@ namespace Assets._Core.Scripts.Player.ShootingHandlers
                 bulletReachPoint = default;
             }
             // Create a trace for bullet
-            var trace = GameObject.Instantiate(bulletTracePrefab);
+            var trace = WeaponSpawner.SpawnBulletTrace();
             trace.Init(shootPoint, shootDir, bulletReachPoint);
         }
     }

@@ -1,5 +1,4 @@
 ﻿using Assets._Core.Scripts.Player.ShootingParameters;
-using UnityEngine;
 
 namespace Assets._Core.Scripts.Player.ShootingHandlers
 {
@@ -7,8 +6,9 @@ namespace Assets._Core.Scripts.Player.ShootingHandlers
     public class ProjectileShootingHandler : ShootingHandlerBase
     {
         protected ProjectileBase projectilePrefab;
+        protected float projectileSpeed;
 
-        public ProjectileShootingHandler(ProjectileShootingParameters shootingParameters)
+        public ProjectileShootingHandler(ProjectileShootingHandlerArgs shootingParameters)
             : base(shootingParameters)
         {
             this.projectilePrefab = shootingParameters.projectilePrefab;
@@ -18,7 +18,7 @@ namespace Assets._Core.Scripts.Player.ShootingHandlers
         {
             var shootPoint = camera.transform.position;
             var shootDir = camera.transform.forward;
-            var projectile = GameObject.Instantiate(projectilePrefab, camera.transform.position + camera.transform.forward * 2, Quaternion.identity);
+            var projectile = WeaponSpawner.SpawnBFGProjectile(camera.transform.position + camera.transform.forward * 2);
             projectile.Init(shootDir, 2);
         }
     }

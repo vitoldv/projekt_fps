@@ -1,34 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets._Core.Scripts.Player.ShootingParameters
 {
-    public class ShootingParametersBase
+    public class ShootingHandlerArgs
     {
+        public int initialAmmoAmount;
         public float roundsPerMinute;
         public float reloadTime;
-        public int gunShopCapacity;
+        public float damage;
+        public int gunShopCapacity;        
         public PlayerController playerController;
         public Camera camera;
     }
 
-    public class HitScanShootingParameters : ShootingParametersBase
+    public class HitScanShootingHandlerArgs : ShootingHandlerArgs
     {
         public BulletTrace bulletTracePrefab;
     }
     
-    public class FractionShootingParameters : ShootingParametersBase
+    public class FractionShootingHandlerArgs : ShootingHandlerArgs
     {
         // some effect for shotgun shot
         public float scatterConeAngle;
+        public BulletTrace bulletTracePrefab;
     }
 
-    public class ProjectileShootingParameters : ShootingParametersBase
+    public class ProjectileShootingHandlerArgs : ShootingHandlerArgs
     {
+        public float projectileSpeed;
+        public float explosionRadius;
         public ProjectileBase projectilePrefab;
     }
 }
