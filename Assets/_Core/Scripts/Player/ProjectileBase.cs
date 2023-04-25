@@ -12,10 +12,12 @@ public class ProjectileBase : MonoBehaviour, IPoolableObject
     private float explosionRadius;
 
     // Start is called before the first frame update
-    public void Init(Vector3 direction, float speed)
+    public void Init(Vector3 direction, float speed, float damage, float explosionRadius)
     {
         this.direction = direction;
         this.speed = speed;
+        this.explosionRadius = explosionRadius;
+        this.damage = damage;         
     }
 
     // Update is called once per frame
@@ -36,18 +38,21 @@ public class ProjectileBase : MonoBehaviour, IPoolableObject
     {
         // play some effect
         var colliders = Physics.OverlapSphere(transform.position, explosionRadius, onDestroyLayers);
+        print($"Colliders num: {colliders.Length}");
         foreach (var collider in colliders)
         {
-            if(collider.gameObject.TryGetComponent<IShootingTarget>(out var shootingTarget))
+            print($"Collider: {collider.gameObject.name}");
+            if (collider.gameObject.TryGetComponent<IShootingTarget>(out var shootingTarget))
             {
                 Vector3 hitPoint = collider.ClosestPoint(transform.position);
                 float distanceToObject = Vector3.Distance(hitPoint, transform.position);
                 // the damage is less the further the object from epicenter
                 float actualDamage = damage * (1 - distanceToObject / explosionRadius);
+                print($"shooting target: {actualDamage}, {distanceToObject}");
                 shootingTarget.OnHit(hitPoint, actualDamage, DamageType.Explosion);
             }
         }
-        Destroy(gameObject);
+        Disable();
     }
 
     public void Enable()

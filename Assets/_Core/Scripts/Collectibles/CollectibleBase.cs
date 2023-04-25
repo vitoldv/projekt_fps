@@ -8,7 +8,6 @@ public abstract class CollectibleBase : MonoBehaviour, IPoolableObject
 
     private void OnTriggerEnter(Collider other)
     {
-        print("on trigger");
         if (other.gameObject.CompareTag(Tags.Player))
         {
             var player = other.gameObject.GetComponent<PlayerController>();
@@ -19,7 +18,6 @@ public abstract class CollectibleBase : MonoBehaviour, IPoolableObject
 
     private void OnCollisionEnter(Collision collision)
     {
-        print("OnCollision");
     }
 
     public void Disable()

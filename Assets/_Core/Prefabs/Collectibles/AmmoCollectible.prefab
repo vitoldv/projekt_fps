@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5238881133453198892}
   - component: {fileID: -7260621606252347616}
   - component: {fileID: 8952662634993922203}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: AmmoCollectible
   m_TagString: Untagged
   m_Icon: {fileID: 0}

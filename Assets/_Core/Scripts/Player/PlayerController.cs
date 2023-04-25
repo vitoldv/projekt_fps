@@ -7,6 +7,8 @@ using System;
 using _Core;
 using Assets._Core.Scripts.Player;
 using Unity.VisualScripting.Dependencies.NCalc;
+using System.Collections.Generic;
+using System.Linq;
 
 public partial class PlayerController : MonoBehaviour
 {
@@ -57,6 +59,7 @@ public partial class PlayerController : MonoBehaviour
     [SerializeField] private int crosshairLength = 50;
     [SerializeField] private int crosshairWidth = 2;
     [SerializeField] private int initialAmmoAmountDebug = 45;
+    [SerializeField] private LayerMask checkForGroundMask;
 
     // Components references
     private CharacterController controller;
@@ -86,13 +89,16 @@ public partial class PlayerController : MonoBehaviour
 
     [SerializeField] private Transform shootingPoint;
 
+    private Dictionary<WeaponType, ShootingHandlerBase> shootingHandlers = new Dictionary<WeaponType, ShootingHandlerBase>();
+
     private void Start()
     {
         controller = GetComponent<CharacterController>();
         camera = GetComponentInChildren<Camera>();
         capsuleTransform = GetComponentInChildren<MeshRenderer>().gameObject.transform;
         capsuleCollider = GetComponentInChildren<CapsuleCollider>();
-        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.Locked;        
+        ReloadShootingHandlers();
         SelectWeapon(WeaponType.Pistol);
         //currentShootingHandler = new HitScanShootingHandler(
         //    new HitScanShootingHandlerArgs
@@ -239,30 +245,41 @@ public partial class PlayerController : MonoBehaviour
         if(unlockedWeapons.HasFlag(weapon) && currentWeapon != weapon)
         {
             currentWeapon = weapon;
-            ShootingHandlerArgs shootingHandlerArgs = GameManager.CurrentWeaponConfiguration.GetShootingHandlerArgsForWeapon(weapon);
+            shootingHandler = shootingHandlers[weapon];            
+            WeaponChanged?.Invoke(weapon);
+        }
+    }
+
+    private void ReloadShootingHandlers()
+    {
+        foreach (var weaponType in Enum.GetValues(typeof(WeaponType)).Cast<WeaponType>())
+        {
+            ShootingHandlerBase handler = null;
+            ShootingHandlerArgs shootingHandlerArgs = GameManager.CurrentWeaponConfiguration.GetShootingHandlerArgsForWeapon(weaponType);
             shootingHandlerArgs.playerController = this;
             shootingHandlerArgs.camera = this.camera;
             shootingHandlerArgs.initialAmmoAmount = initialAmmoAmountDebug;
-            switch (weapon)
+
+            switch (weaponType)
             {
                 case WeaponType.Pistol:
-                    shootingHandler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
+                    handler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
                     break;
                 case WeaponType.Rifle:
-                    shootingHandler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
+                    handler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
                     break;
                 case WeaponType.Shotgun:
-                    shootingHandler = new FractionShootingHandler((FractionShootingHandlerArgs)shootingHandlerArgs);
+                    handler = new FractionShootingHandler((FractionShootingHandlerArgs)shootingHandlerArgs);
                     break;
                 case WeaponType.BFG:
-                    shootingHandler = new ProjectileShootingHandler((ProjectileShootingHandlerArgs)shootingHandlerArgs);
+                    handler = new ProjectileShootingHandler((ProjectileShootingHandlerArgs)shootingHandlerArgs);
                     break;
                 case WeaponType.Railgun:
-                    shootingHandler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
+                    handler = new HitScanShootingHandler((HitScanShootingHandlerArgs)shootingHandlerArgs);
                     break;
             }
-            
-            WeaponChanged?.Invoke(weapon);
+
+            shootingHandlers[weaponType] = handler;
         }
     }
 
@@ -456,9 +473,9 @@ public partial class PlayerController : MonoBehaviour
 
     public bool IsGrounded(float groundDistance = 0.1f)
     {
-        Vector3 center = transform.position + capsuleCollider.center;
+        Vector3 center = transform.position;
         Ray ray = new Ray(center, Vector3.down);
-        return Physics.Raycast(ray, groundDistance);
+        return Physics.Raycast(ray, groundDistance, checkForGroundMask);
     }
 
     public void ReceiveDamage(float damageAmount)
@@ -496,8 +513,8 @@ public partial class PlayerController : MonoBehaviour
 
     private void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsReloading {shootingHandler.isReloading}. "
-            + $"Current weapon: {currentWeapon}. {shootingHandler.CurrentAmmoAmount}/{shootingHandler.GunShopCapacity} : {shootingHandler.CurrentAmmoAmountTotal}"
+        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsReloading {shootingHandler?.isReloading}. "
+            + $"Current weapon: {currentWeapon}. {shootingHandler?.CurrentAmmoAmount}/{shootingHandler?.GunShopCapacity} : {shootingHandler?.CurrentAmmoAmountTotal}"
             + $"HP: {CurrentHP}");
         
         int centerX = Screen.width / 2;

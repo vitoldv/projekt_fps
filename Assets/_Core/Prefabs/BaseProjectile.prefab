@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2468848540248447628}
   - component: {fileID: 8392839022747653358}
   - component: {fileID: 8008971897560844495}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BaseProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -113,7 +113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   onDestroyLayers:
     serializedVersion: 2
-    m_Bits: 567
+    m_Bits: 2615
 --- !u!54 &8008971897560844495
 Rigidbody:
   m_ObjectHideFlags: 0

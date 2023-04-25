@@ -32,7 +32,7 @@ MonoBehaviour:
   bfgRoundsPerMinute: 12
   bfgReloadTime: 5
   bfgCapacity: 2
-  bfgDamage: 10
+  bfgDamage: 50
   projectileSpeed: 2
   bfgProjectilePrefab: {fileID: 8392839022747653358, guid: 4675c293cbceac9418a6cf54d6df84dc,
     type: 3}
