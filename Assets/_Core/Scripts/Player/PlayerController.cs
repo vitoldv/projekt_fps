@@ -8,6 +8,7 @@ using _Core;
 using Assets._Core.Scripts.Player;
 using System.Collections.Generic;
 using System.Linq;
+using Assets._Core.Scripts.Saves;
 
 public partial class PlayerController : MonoBehaviour
 {
@@ -53,11 +54,14 @@ public partial class PlayerController : MonoBehaviour
     public float slideSpeed;
     public float shutterFreezeTime;
     public float shutterForce;
-    public bool IsDoubleJumpEnabled;
     public float dashCooldown = 1.5f;
     public float shutterCooldown = 1.5f;
     public float shutterRadius = 2;
     public float shutterDamage = 2;
+
+    public bool IsDoubleJumpEnabled;
+    public bool IsDashEnabled;
+    public bool IsQuakeEnabled;
 
     [Header("Shooting Parameters")]
     public float scatterConeAngle = 3f;
@@ -103,25 +107,40 @@ public partial class PlayerController : MonoBehaviour
     private float timeSinceLastShutter = 0;
     private float timeSinceLastDash = 0;
 
+    bool isInitialized;
+
     private ShootingHandlerBase shootingHandler;
 
     [SerializeField] private Transform shootingPoint;
 
     private Dictionary<WeaponType, ShootingHandlerBase> shootingHandlers = new Dictionary<WeaponType, ShootingHandlerBase>();
 
-    private void Start()
+    private void Awake()
     {
         controller = GetComponent<CharacterController>();
         camera = GetComponentInChildren<Camera>();
         capsuleTransform = GetComponentInChildren<MeshRenderer>().gameObject.transform;
         capsuleCollider = GetComponentInChildren<CapsuleCollider>();
         Cursor.lockState = CursorLockMode.Locked;        
+    }
+
+    public void Init(PlayerProgressionData playerProgressionData)
+    {
+        print("Init");
+        IsDoubleJumpEnabled = playerProgressionData.isDoubleJumpPurchased;
+        IsDashEnabled = playerProgressionData.isDashPurchased;
+        IsQuakeEnabled = playerProgressionData.isQuakePurchased;
+        unlockedWeapons = playerProgressionData.weaponPurchased;
+        isInitialized = true;
+
         ReloadShootingHandlers();
         SelectWeapon(WeaponType.Pistol);
+
     }
 
     private void Update()
     {
+        if (!isInitialized) return;
         CheckForGround();
         HandleRotation();
         HandleMovement();

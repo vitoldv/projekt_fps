@@ -4,7 +4,8 @@ namespace _Core
 {
     public abstract class Singleton<T> : MonoBehaviour where T: MonoBehaviour
     {
-        protected static T _instance;
+        protected bool isInitialized;
+        protected static T inst;
 
         private void Awake()
         {
@@ -14,17 +15,20 @@ namespace _Core
         
         private void CreateSingleton()
         {
-            if (_instance != null)
+            if (inst != null)
             {
                 Destroy(gameObject);
             }
             else
             {
-                _instance = this as T;
+                inst = this as T;
                 DontDestroyOnLoad(gameObject);
             }
         }
 
-        protected abstract void Initialize();
+        protected virtual void Initialize()
+        {
+            isInitialized = true;
+        }
     }
 }

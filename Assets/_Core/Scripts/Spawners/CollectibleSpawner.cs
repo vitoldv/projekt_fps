@@ -12,12 +12,12 @@ public class CollectibleSpawner : SpawnerBase<CollectibleSpawner>
 
     public static HealthCollectible SpawnHealthCollectible()
     {
-        return _instance.Spawn(_instance.healthCollectiblePool, _instance.healthCollectiblePrefab);
+        return inst.Spawn(inst.healthCollectiblePool, inst.healthCollectiblePrefab);
     }
 
     public static AmmoCollectible SpawnAmmoCollectible(int ammoAmount, WeaponType weaponType)
     {
-        var ammoCollectible = _instance.Spawn(_instance.ammoCollectiblePool, _instance.ammoCollectiblePreafab);
+        var ammoCollectible = inst.Spawn(inst.ammoCollectiblePool, inst.ammoCollectiblePreafab);
         ammoCollectible.ammoAmount = ammoAmount;
         ammoCollectible.weaponType = weaponType;
         return ammoCollectible;

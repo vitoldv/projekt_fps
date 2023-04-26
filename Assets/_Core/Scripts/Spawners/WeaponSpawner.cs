@@ -11,12 +11,12 @@ public class WeaponSpawner : SpawnerBase<WeaponSpawner>
 
     public static BulletTrace SpawnBulletTrace()
     {
-        return _instance.Spawn(_instance.bulletTracePool, _instance.bulletTracePrefab);
+        return inst.Spawn(inst.bulletTracePool, inst.bulletTracePrefab);
     }
 
     public static ProjectileBase SpawnBFGProjectile(Vector3 position)
     {
-        var projectile = _instance.Spawn(_instance.bfgProjectilePool, _instance.bfgProjectile);
+        var projectile = inst.Spawn(inst.bfgProjectilePool, inst.bfgProjectile);
         projectile.transform.position = position;
         projectile.transform.rotation = Quaternion.identity;
         return projectile;

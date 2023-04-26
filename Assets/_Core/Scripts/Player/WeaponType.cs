@@ -1,5 +1,8 @@
-﻿namespace _Core
+﻿using System;
+
+namespace _Core
 {
+    [Flags]
     public enum WeaponType
     {
         Pistol = 1,

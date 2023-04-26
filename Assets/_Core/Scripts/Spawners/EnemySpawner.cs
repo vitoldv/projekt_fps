@@ -17,11 +17,11 @@ public class EnemySpawner : SpawnerBase<EnemySpawner>
         T enemy = null;
         if(typeof(T) == typeof(WalkingEnemy))
         {
-            enemy = _instance.Spawn(_instance.enemyPool, _instance.enemyPrefab) as T;
+            enemy = inst.Spawn(inst.enemyPool, inst.enemyPrefab) as T;
         }
         if(typeof(T) == typeof(FlyingEnemy))
         {
-            enemy = _instance.Spawn(_instance.flyingEnemyPool, _instance.flyingEnemyPrefab) as T;
+            enemy = inst.Spawn(inst.flyingEnemyPool, inst.flyingEnemyPrefab) as T;
         }        
         return enemy;
     }
