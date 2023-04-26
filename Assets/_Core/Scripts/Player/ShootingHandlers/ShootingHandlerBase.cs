@@ -7,12 +7,13 @@ namespace Assets._Core.Scripts
 {
     public abstract class ShootingHandlerBase
     {
-        public event Action OnShot;
+        public event Action AmmoStateChanged;
         public event Action OnReloadStarted;
 
-        public int CurrentAmmoAmount { get; private set; }
-        public int CurrentAmmoAmountTotal { get; private set; }
-        public int GunShopCapacity = 30;
+        public ShootingHandlerState State => state;
+
+        private ShootingHandlerState state;
+
 
         protected float roundsPerMinute = 300f;
         protected float reloadTime = 1.5f;                
@@ -27,28 +28,29 @@ namespace Assets._Core.Scripts
         {
             this.roundsPerMinute = shootingParameters.roundsPerMinute;
             this.reloadTime = shootingParameters.reloadTime;
-            this.GunShopCapacity = shootingParameters.gunShopCapacity;
+            this.state.GunShopCapacity = shootingParameters.gunShopCapacity;
             this.playerController = shootingParameters.playerController;
             this.damage = shootingParameters.damage;
             this.camera = shootingParameters.camera;
             timeBetweenShots = 60f / roundsPerMinute;
-            this.CurrentAmmoAmount = GunShopCapacity;
-            this.CurrentAmmoAmountTotal = shootingParameters.initialAmmoAmount - GunShopCapacity;
+            this.state.CurrentAmmoAmount = state.GunShopCapacity;
+            this.state.CurrentAmmoAmountTotal = shootingParameters.initialAmmoAmount - state.GunShopCapacity;
         }
 
         public void Update()
         {
-            if (Input.GetMouseButton(0) && !isReloading && CurrentAmmoAmount > 0 && timeSinceLastShot >= timeBetweenShots)
+            if (Input.GetMouseButton(0) && !isReloading && state.CurrentAmmoAmount > 0 && timeSinceLastShot >= timeBetweenShots)
             {                
                 Shoot();
-                CurrentAmmoAmount--;
+                state.CurrentAmmoAmount--;
                 timeSinceLastShot = 0f;
+                AmmoStateChanged?.Invoke();
             }
 
             timeSinceLastShot += Time.deltaTime;
 
             // if player ran out of ammo and there is some carried ammo or if reload button was pressed and current ammo is less then gunshop capacity
-            if (((CurrentAmmoAmount == 0 && CurrentAmmoAmountTotal > 0) || (Input.GetKeyDown(KeyCode.R) && CurrentAmmoAmount < GunShopCapacity)) && !isReloading)
+            if (((state.CurrentAmmoAmount == 0 && state.CurrentAmmoAmountTotal > 0) || (Input.GetKeyDown(KeyCode.R) && state.CurrentAmmoAmount < state.GunShopCapacity)) && !isReloading)
             {
                 playerController.StartCoroutine(Reload());
             }
@@ -59,41 +61,42 @@ namespace Assets._Core.Scripts
             isReloading = true;
 
             yield return new WaitForSeconds(reloadTime);
-            if(CurrentAmmoAmount == 0)
+            if(state.CurrentAmmoAmount == 0)
             {
-                if (CurrentAmmoAmountTotal <= GunShopCapacity)
+                if (state.CurrentAmmoAmountTotal <= state.GunShopCapacity)
                 {
-                    CurrentAmmoAmount = CurrentAmmoAmountTotal;
-                    CurrentAmmoAmountTotal = 0;
+                    state.CurrentAmmoAmount = state.CurrentAmmoAmountTotal;
+                    state.CurrentAmmoAmountTotal = 0;
                 }
                 else
                 {
-                    CurrentAmmoAmountTotal -= GunShopCapacity;
-                    CurrentAmmoAmount += GunShopCapacity;
+                    state.CurrentAmmoAmountTotal -= state.GunShopCapacity;
+                    state.CurrentAmmoAmount += state.GunShopCapacity;
                 }
             }
             else
             {
-                var needToLoad = GunShopCapacity - CurrentAmmoAmount;
-                if(CurrentAmmoAmountTotal > needToLoad)
+                var needToLoad = state.GunShopCapacity - state.CurrentAmmoAmount;
+                if(state.CurrentAmmoAmountTotal > needToLoad)
                 {
-                    CurrentAmmoAmountTotal -= needToLoad;
-                    CurrentAmmoAmount = GunShopCapacity;
+                    state.CurrentAmmoAmountTotal -= needToLoad;
+                    state.CurrentAmmoAmount = state.GunShopCapacity;
                 }
                 else
                 {
-                    CurrentAmmoAmount += CurrentAmmoAmountTotal;
-                    CurrentAmmoAmountTotal = 0;
+                    state.CurrentAmmoAmount += state.CurrentAmmoAmountTotal;
+                    state.CurrentAmmoAmountTotal = 0;
                 }
             }
-            
 
+            AmmoStateChanged?.Invoke();
             isReloading = false;
         }
 
         public void FillAmmo(int ammoAmount)
         {
-            CurrentAmmoAmountTotal += ammoAmount;
+            state.CurrentAmmoAmountTotal += ammoAmount;
+            AmmoStateChanged?.Invoke();
         }
 
         protected virtual void Shoot() { }

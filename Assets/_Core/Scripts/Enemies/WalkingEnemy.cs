@@ -14,7 +14,6 @@ namespace Assets._Core.Scripts.Enemies
         [SerializeField] private float corpseLifetime;
         [Header("Movement")]
         [SerializeField] private float walkSpeed;
-        [SerializeField] private float rotationSpeed;
         [Header("Attack")]
         [SerializeField] private float attackDamage;
         [SerializeField] private float attackDistance;

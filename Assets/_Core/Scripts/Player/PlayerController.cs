@@ -12,11 +12,30 @@ using System.Linq;
 public partial class PlayerController : MonoBehaviour
 {
     public event Action PlayerDied;
-    public event Action<WeaponType> WeaponChanged;
+    // params: new selected weapon, ammoValue, ammoValueTotal, gunShopCapasityValue
+    public event Action<WeaponType, ShootingHandlerState> WeaponSelected;
+    // params: new health value
+    public event Action<float> HealthValueChanged;
+    // params: ammoValue, ammoValueTotal, gunShopCapasityValue
+    public event Action<ShootingHandlerState> AmmoValuesChanged;
+    // params: new dash cooldown value
+    public event Action<int> DashCooldownValueChanged;
+    // params: new quake cooldown value
+    public event Action<int> QuakeCooldownValueChanged;
+
 
     [Header("Gameplay Parameters")]
     public float MaxHP;
-    public float CurrentHP;
+    public float CurrentHP 
+    {
+        get => currentHpValue;
+        set
+        {
+            currentHpValue = value;
+            HealthValueChanged?.Invoke(currentHpValue);
+        }
+    }
+    private float currentHpValue;
 
     [Header("Movement Parameters")]
     public float movementSpeed = 5f;
@@ -234,8 +253,16 @@ public partial class PlayerController : MonoBehaviour
         if(unlockedWeapons.HasFlag(weapon) && currentWeapon != weapon)
         {
             currentWeapon = weapon;
-            shootingHandler = shootingHandlers[weapon];            
-            WeaponChanged?.Invoke(weapon);
+
+            if(shootingHandler != null)
+            {
+                shootingHandler.AmmoStateChanged -= TriggerAmmoValuesChanged;
+            }
+            
+            shootingHandler = shootingHandlers[weapon];
+            shootingHandler.AmmoStateChanged += TriggerAmmoValuesChanged;
+
+            WeaponSelected?.Invoke(weapon, shootingHandler.State);
         }
     }
 
@@ -488,9 +515,14 @@ public partial class PlayerController : MonoBehaviour
         }
     }
 
+    private void TriggerAmmoValuesChanged()
+    {
+        AmmoValuesChanged?.Invoke(shootingHandler.State);
+    }
+
     public void GetAmmo(int ammoAmount, WeaponType weaponType)
     {
-        print($"Get ammo {ammoAmount} for {weaponType}");
+        shootingHandlers[weaponType].FillAmmo(ammoAmount); 
     }
 
     public void Die()
@@ -498,14 +530,9 @@ public partial class PlayerController : MonoBehaviour
         PlayerDied?.Invoke();
     }
 
-
-
     private void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsReloading {shootingHandler?.isReloading}. "
-            + $"Current weapon: {currentWeapon}. {shootingHandler?.CurrentAmmoAmount}/{shootingHandler?.GunShopCapacity} : {shootingHandler?.CurrentAmmoAmountTotal}"
-            + $"HP: {CurrentHP}");
-        
+        GUI.Label(new Rect(10, 10, 600, 300), $"IsDashing: {isDashing}. IsVerticalFrozen: {isVerticalFreeze}. IsReloading {shootingHandler?.isReloading}. ");        
         int centerX = Screen.width / 2;
         int centerY = Screen.height / 2;
 

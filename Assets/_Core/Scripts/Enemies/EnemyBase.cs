@@ -8,11 +8,15 @@ using UnityEngine.AI;
 public abstract class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
 {
     public event Action<EnemyBase> OnDeath;
-
+    
+    [SerializeField] protected float rotationSpeed;
+    
     protected Animator animator;
     protected Collider collider;
     protected NavMeshAgent navAgent;
-    protected Transform targetTransform;            
+    protected Transform targetTransform;
+
+
 
     public float HP { get; protected set; }
     public bool IsDead { get; protected set; }

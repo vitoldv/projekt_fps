@@ -12,16 +12,15 @@ public class GameManager : Singleton<GameManager>
     public static WeaponsConfiguration CurrentWeaponConfiguration { get; private set; }
     public PlayerController PlayerController;
 
+    [SerializeField] private HUD hud;
+
     protected override void Initialize()
     {
         GameLayers = layers;
         CurrentWeaponConfiguration = DefaultWeaponConfiguration;
-        PlayerController.WeaponChanged += OnWeaponChanged;
-    }
 
-    private void OnWeaponChanged(WeaponType weapon)
-    {
-        // update UI
-        Debug.Log($"Weapon changed to: {weapon}");
+        // HUD creation
+        hud.Init(PlayerController);
+        hud.Show();
     }
 }
