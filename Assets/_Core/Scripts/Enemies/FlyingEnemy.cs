@@ -1,33 +1,26 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class FlyingEnemy : MonoBehaviour
+public class FlyingEnemy : EnemyBase
 {
     public float speed = 5f;
     public float distanceFromPlayer = 10f;
     public float heightAboveGround = 5f;
     public float raycastDistance = 10f;
 
-    private GameObject player;
-    private NavMeshAgent navMeshAgent;
-    private Vector3 destination;
-
-    void Start()
+    public override void Init(Transform target)
     {
-        player = GameObject.FindGameObjectWithTag("Player");
-        navMeshAgent = GetComponent<NavMeshAgent>();
-        navMeshAgent.autoTraverseOffMeshLink = false;
-
-        // Set NavMeshAgent properties for flying movement
-        navMeshAgent.baseOffset = heightAboveGround;
-        navMeshAgent.updateRotation = false;
-        navMeshAgent.stoppingDistance = distanceFromPlayer / 2;
+        navAgent.autoTraverseOffMeshLink = false;
+        navAgent.baseOffset = heightAboveGround;
+        navAgent.updateRotation = false;
+        navAgent.stoppingDistance = distanceFromPlayer / 2;
+        base.Init(target);
     }
 
     void Update()
     {
         // Calculate the target position to follow the player while maintaining a certain distance
-        Vector3 playerPosition = player.transform.position;
+        Vector3 playerPosition = targetTransform.position;
         Vector3 enemyPosition = transform.position;
         Vector3 directionToPlayer = playerPosition - enemyPosition;
         Vector3 targetPosition = playerPosition - directionToPlayer.normalized * distanceFromPlayer;
@@ -43,30 +36,35 @@ public class FlyingEnemy : MonoBehaviour
         // Move towards the target position while maintaining a certain height above the ground
         Vector3 targetDirection = (targetPosition - enemyPosition).normalized;
         Vector3 targetHeight = Vector3.up * heightAboveGround;
-        destination = targetPosition - targetDirection * 2.0f + targetHeight;
+        var destination = targetPosition - targetDirection * 2.0f + targetHeight;
         NavMesh.SamplePosition(destination, out NavMeshHit hitNavMesh, 10.0f, NavMesh.AllAreas);
         destination = hitNavMesh.position;
 
         // Check if there is an off-mesh link (such as a jump) in the way
-        if (navMeshAgent.isOnOffMeshLink)
+        if (navAgent.isOnOffMeshLink)
         {
             // If so, move up or down to reach the next part of the link
-            if (transform.position.y > navMeshAgent.currentOffMeshLinkData.endPos.y)
+            if (transform.position.y > navAgent.currentOffMeshLinkData.endPos.y)
             {
                 destination = new Vector3(destination.x, transform.position.y - heightAboveGround, destination.z);
             }
             else
             {
-                destination = new Vector3(destination.x, navMeshAgent.currentOffMeshLinkData.endPos.y + heightAboveGround, destination.z);
+                destination = new Vector3(destination.x, navAgent.currentOffMeshLinkData.endPos.y + heightAboveGround, destination.z);
             }
         }
         else
         {
             // Otherwise, move along the navmesh normally
-            navMeshAgent.SetDestination(destination);
+            navAgent.SetDestination(destination);
         }
 
         // Rotate towards the player
         transform.LookAt(playerPosition);
+    }
+
+    protected override void Die()
+    {
+        throw new System.NotImplementedException();
     }
 }

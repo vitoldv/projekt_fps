@@ -29,7 +29,7 @@ MonoBehaviour:
   shotgunCapacity: 12
   shotgunDamage: 3
   shotgunScatterConeAngle: 4
-  bfgRoundsPerMinute: 12
+  bfgRoundsPerMinute: 60
   bfgReloadTime: 5
   bfgCapacity: 2
   bfgDamage: 50

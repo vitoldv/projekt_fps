@@ -6,7 +6,6 @@ using Assets._Core.Scripts.Player.ShootingParameters;
 using System;
 using _Core;
 using Assets._Core.Scripts.Player;
-using Unity.VisualScripting.Dependencies.NCalc;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -100,16 +99,6 @@ public partial class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;        
         ReloadShootingHandlers();
         SelectWeapon(WeaponType.Pistol);
-        //currentShootingHandler = new HitScanShootingHandler(
-        //    new HitScanShootingHandlerArgs
-        //    {
-        //        roundsPerMinute = this.roundsPerMinute, 
-        //        reloadTime = this.reloadTime,
-        //        gunShopCapacity = this.shotsMax,
-        //        playerController = this,
-        //        camera = this.camera,
-        //        bulletTracePrefab = this.bulletTracePrefab
-        //    });
     }
 
     private void Update()

@@ -5,121 +5,59 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(CapsuleCollider), typeof(NavMeshAgent))]
-public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
+public abstract class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
 {
     public event Action<EnemyBase> OnDeath;
 
-    // Animator properties hashes
-    private readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
-    private readonly int IsDeadHash = Animator.StringToHash("IsDead");
-    private readonly int IsAttackingHash = Animator.StringToHash("IsAttacking");
+    protected Animator animator;
+    protected Collider collider;
+    protected NavMeshAgent navAgent;
+    protected Transform targetTransform;            
 
-    [SerializeField] private float initialHp;
-    [SerializeField] private float corpseLifetime;
-    [Header("Movement")]
-    [SerializeField] private float walkSpeed;
-    [SerializeField] private float rotationSpeed;
-    [Header("Attack")]
-    [SerializeField] private float attackDamage;
-    [SerializeField] private float attackDistance;
-    [SerializeField] private float firstAttackDelay;
-    [SerializeField] private float repeatedAttackDelay;
-
-    private Transform targetTransform;
-    
-    private Animator _animator;
-    private CapsuleCollider collider;
-    private NavMeshAgent navAgent;
-
-    private bool isFirstAttackMade;
-    private float timer;
-
-    public float HP { get; private set; }
-    public bool IsDead { get; private set; }
-    public bool IsWalking => navAgent.enabled;
-    public bool IsAttacking { get; private set; }
+    public float HP { get; protected set; }
+    public bool IsDead { get; protected set; }
 
     private void Awake()
     {
-        _animator = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
         collider = GetComponent<CapsuleCollider>();
         navAgent = GetComponent<NavMeshAgent>();
     }
 
-    public void Initialize(Transform target)
+    public virtual void Init(Transform target)
     {
-        targetTransform = target;
-        SetSpeed(walkSpeed);
-        EnableWalking();
-        EnableCollider();
-        HP = initialHp;
-        timer = 0;
-        isFirstAttackMade = false;
-        IsDead = false;
+        this.targetTransform = target;
     }
 
-    private void Update()
+    protected void EnableCollider()
     {
-        if (IsDead)
-        {
-            timer += Time.deltaTime;
-            if (timer >= corpseLifetime)
-            {
-                Disable();
-            }
-            return;
-        }
-        if (IsWalking)
-        {
-            LookOnTarget();
-            UpdateTargetPosition();
-        }
-        CheckIsAttacking();
-        if (IsAttacking)
-        {
-            HandleAttack();
-        }
+        collider.enabled = true;
     }
 
-    private void HandleAttack()
+    protected void DisableCollider()
     {
-        timer += Time.deltaTime;
-        if (!isFirstAttackMade && timer >= firstAttackDelay)
+        collider.enabled = false;
+    }
+
+    protected float GetDistanceToTarget()
+    {
+        return Vector3.Distance(transform.position, targetTransform.position);
+    }
+    public void SetTarget(Transform targetTransform)
+    {
+        this.targetTransform = targetTransform;
+    }
+    public void ReceiveDamage(float damageAmount)
+    {
+        HP -= damageAmount;
+        if (HP <= 0)
         {
-            Attack();
-            isFirstAttackMade = true;
-        }
-        if (isFirstAttackMade && timer >= repeatedAttackDelay)
-        {
-            Attack();
+            Die();
+            OnDeath?.Invoke(this);
         }
     }
 
-    private void CheckIsAttacking()
-    {
-        if (GetDistanceToTarget() <= attackDistance)
-        {
-            if (!IsAttacking)
-            {
-                StartAttacking();
-            }
-        }
-        else if (IsAttacking)
-        {
-            StopAttacking();
-        }
-    }
-
-    private void Attack()
-    {
-        if (targetTransform.TryGetComponent(out PlayerController player))
-        {
-            player.ReceiveDamage(attackDamage);
-        }
-        timer = 0;
-    }
-
-    private void LookOnTarget()
+    protected void LookOnTarget()
     {
         Vector3 direction = (targetTransform.position - transform.position).normalized;
         direction.y = 0;
@@ -127,82 +65,16 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
     }
 
-    private void UpdateTargetPosition()
+    protected void UpdateTargetPosition()
     {
         navAgent.SetDestination(targetTransform.position);
     }
 
-    private void StartAttacking()
-    {
-        IsAttacking = true;
-        //_animator.SetBool(IsAttackingHash, true);
-        timer = 0;
-        isFirstAttackMade = false;
-        DisableWalking();
-    }
+    protected abstract void Die();
 
-    private void StopAttacking()
+    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
     {
-        IsAttacking = false;
-        //_animator.SetBool(IsAttackingHash, false);
-        SetSpeed(walkSpeed);
-        EnableWalking();
-    }
-
-    public void ReceiveDamage(float damageAmount)
-    {
-        HP -= damageAmount;
-        if (HP <= 0)
-        {
-            Die();
-        }
-    }
-
-    private void Die()
-    {
-        IsDead = true;
-        //_animator.SetBool(IsDeadHash, true);
-        DisableCollider();
-        DisableWalking();
-        StopAttacking();
-        OnDeath?.Invoke(this);
-        timer = 0;
-    }
-
-    private void EnableWalking()
-    {
-        navAgent.enabled = true;
-        //_animator.SetBool(IsWalkingHash, true);
-    }
-    private void DisableWalking()
-    {
-        navAgent.enabled = false;
-        //_animator.SetBool(IsWalkingHash, false);
-    }
-
-    private void EnableCollider()
-    {
-        collider.enabled = true;
-    }
-
-    private void DisableCollider()
-    {
-        collider.enabled = false;
-    }
-
-    private void SetSpeed(float speed)
-    {
-        navAgent.speed = speed;
-    }
-
-    private float GetDistanceToTarget()
-    {
-        return Vector3.Distance(transform.position, targetTransform.position);
-    }
-
-    public void SetTarget(Transform targetTransform)
-    {
-        this.targetTransform = targetTransform;
+        ReceiveDamage(damage);
     }
 
     public void Enable()
@@ -212,16 +84,13 @@ public class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
 
     public void Disable()
     {
+        IsDead = false;
+        targetTransform = null;
         gameObject.SetActive(false);
     }
 
     public bool IsActive()
     {
-        return gameObject.activeInHierarchy;
-    }
-
-    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
-    {
-        ReceiveDamage(damage);
+        return gameObject.activeSelf;
     }
 }
