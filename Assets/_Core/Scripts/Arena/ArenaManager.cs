@@ -1,29 +1,36 @@
 using UnityEngine;
+using _Core.Arena;
 using _Core;
-using System.Collections.Generic;
-using UnityEngine.SceneManagement;
-using System.Collections;
-using System;
 using System.Linq;
+using System;
 
-public class ArenaManager : Singleton<ArenaManager>
+public class ArenaManager : MonoBehaviour
 {
-    public static event Action<string> ArenaLoaded;
-    public static event Action ArenaInitialized;
+    public event Action OnAllEnemiesDefeated;
+    public event Action OnPlayerLeaveEntryZone;
+    public event Action OnPlayerEnterExitZone;
 
-    [SerializeField] private List<string> arenaNames;
-
-    public string currentArenaName;
+    public string ArenaName;
+    public int enemiesDefeated;
 
     // Current arena data
-    private Transform playerSpawnPoint;
-    private List<Transform> enemySpawnPoints;
-    private bool isGameStarted;
-    
+    [SerializeField] private Transform playerSpawnPoint;
+    [SerializeField] private RepeatedSpawnPoint[] repeatedEnemySpawnPoints;
+    [SerializeField] private OneTimeSpawnPoint[] oneTimeEnemySpawnPoints;
+    [SerializeField] private EntryRoomTriggerZone entryRoomTriggerZone;
+    [SerializeField] private ExitRoomTriggerZone exitRoomTriggerZone;
 
-    protected override void Initialize()
+    public Transform PlayerInitialTransform => playerSpawnPoint;
+
+    private bool isGameStarted;
+
+    private void Awake()
     {
-        
+        var spawnPoints = GameObject.FindGameObjectsWithTag(Tags.SpawnPoints).Cast<EnemySpawnPoint>().ToList();
+        repeatedEnemySpawnPoints = spawnPoints.OfType<RepeatedSpawnPoint>().ToArray();
+        oneTimeEnemySpawnPoints = spawnPoints.OfType<OneTimeSpawnPoint>().ToArray();
+        entryRoomTriggerZone.PlayerLeftTriggerZone += OnPlayerLeftEntryRoom;
+        exitRoomTriggerZone.PlayerEnterTriggerZone += OnPlayerEnterExitRoom;
     }
 
     private void Update()
@@ -37,51 +44,17 @@ public class ArenaManager : Singleton<ArenaManager>
     private void SpawnEnemies()
     {
         // TODO: Implement logic that would spawn enemies throught the arena
-
     }
 
-    public static void LoadArena(int arenaId)
+    private void OnPlayerLeftEntryRoom()
     {
-        inst.StartCoroutine(inst.LoadSceneAsync(inst.arenaNames[arenaId]));
+        // TODO: Start active actions
+        OnPlayerLeaveEntryZone?.Invoke();
     }
 
-    public static void InitializeCurrentArena(PlayerController player)
+    private void OnPlayerEnterExitRoom()
     {
-        inst.playerSpawnPoint = GameObject.FindGameObjectWithTag("PlayerSpawnPoint").transform;
-        inst.enemySpawnPoints = GameObject.FindGameObjectsWithTag("EnemySpawnPoint").Select(o => o.transform).ToList();
-        player.transform.position = inst.playerSpawnPoint.position;
+        // TODO: Start active actions
+        OnPlayerEnterExitZone?.Invoke();
     }
-
-    public static void UnloadArena()
-    {
-        inst.StartCoroutine(inst.UnloadSceneAsync(inst.currentArenaName));
-    }
-
-    private IEnumerator UnloadSceneAsync(string sceneName)
-    {
-        AsyncOperation asyncUnload = SceneManager.UnloadSceneAsync(sceneName);
-
-        while (!asyncUnload.isDone)
-        {
-            yield return null;
-        }
-    }
-
-    private IEnumerator LoadSceneAsync(string sceneName)
-    {      
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
-
-        while (!asyncLoad.isDone)
-        {
-            // Update progress bar or loading text
-            // You can also use asyncLoad.progress to get the loading progress
-
-            yield return null;
-        }
-
-        currentArenaName = sceneName;
-        ArenaLoaded?.Invoke(sceneName);
-    }
-
-
 }

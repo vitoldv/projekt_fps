@@ -14,22 +14,23 @@ public class GameManager : Singleton<GameManager>
     public WeaponsConfiguration DefaultWeaponConfiguration;
     public static WeaponsConfiguration CurrentWeaponConfiguration { get; private set; }
     
-    [HideInInspector] public PlayerController PlayerController;
+    public PlayerController PlayerController { get; private set; }
+    
+    [Header("Prefabs")]
     [SerializeField] private PlayerController playerControllerPrefab;
-
-    private GameSaveFileData currentGameSaveFileData;
-
     [SerializeField] private HUD hudPrefab;
-
-    private MainMenu mainMenuObject;
+    
+    private GameSaveFileData currentGameSaveFileData;
+    private ArenaManager currentArenaManager;
+    private MainMenu mainMenu;
     private HUD hud;
 
     protected override void Initialize()
     {
         if(SceneManager.GetActiveScene().name == MainMenuSceneName)
         {
-            mainMenuObject = FindFirstObjectByType<MainMenu>();
-            mainMenuObject.StartGameClicked += OnGameStartInitiated;
+            mainMenu = FindFirstObjectByType<MainMenu>();
+            mainMenu.StartGameClicked += OnGameStartInitiated;
         }
         else
         {
@@ -45,8 +46,7 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        ArenaManager.ArenaLoaded += OnArenaLoaded;
-        ArenaManager.ArenaInitialized += OnArenaInitialized;
+        ArenaLoader.ArenaLoaded += OnArenaLoaded;
     }
 
     private void OnGameStartInitiated()
@@ -63,24 +63,31 @@ public class GameManager : Singleton<GameManager>
 
     private void StartGame(GameSaveFileData gameSaveFile)
     {
-        // temporarily here
         print("start game");
-        mainMenuObject.StartGameClicked -= OnGameStartInitiated;
-        ArenaManager.LoadArena(gameSaveFile.nextArena);
+        // temporarily here
+        mainMenu.StartGameClicked -= OnGameStartInitiated;
+        ArenaLoader.LoadArena(gameSaveFile.nextArena);
     }
 
     private void OnArenaLoaded(string arenaName)
     {
         print("arena loaded");
-        var player = Instantiate(playerControllerPrefab);
-        player.Init(currentGameSaveFileData.playerProgressionData);
-        PlayerController = player;
-        ArenaManager.InitializeCurrentArena(player);
+        currentArenaManager = GameObject.FindGameObjectWithTag(Tags.ArenaManager).GetComponent<ArenaManager>();
+        CreatePlayer();
+        CreateHUD();
     }
 
-    private void OnArenaInitialized()
+    private void CreatePlayer()
     {
-        // HUD creation
+        var player = Instantiate(playerControllerPrefab);
+        player.Init(currentGameSaveFileData.playerProgressionData);
+        var initialTransform = currentArenaManager.PlayerInitialTransform;
+        player.transform.SetPositionAndRotation(initialTransform.position, initialTransform.rotation);
+        PlayerController = player;
+    }
+
+    private void CreateHUD()
+    {
         hud = Instantiate(hudPrefab);
         hud.Init(PlayerController);
         hud.Show();

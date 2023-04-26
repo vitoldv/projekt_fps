@@ -8,5 +8,7 @@
         public const string Edge = "Edge";
         public const string Player = "Player";
         public const string GameArea = "GameArea";
+        public const string SpawnPoints = "SpawnPoints";
+        public const string ArenaManager = nameof(ArenaManager);
     }
 }
