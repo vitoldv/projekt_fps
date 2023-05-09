@@ -1,4 +1,5 @@
 using _Core;
+using _Core.Spawners;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]

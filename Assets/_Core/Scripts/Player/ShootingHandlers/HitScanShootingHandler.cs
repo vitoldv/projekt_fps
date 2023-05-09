@@ -1,32 +1,31 @@
-﻿using Assets._Core.Scripts.Player.ShootingParameters;
+﻿using _Core.Spawners;
 using UnityEngine;
 
-namespace Assets._Core.Scripts.Player.ShootingHandlers
+namespace _Core.Player
 {
     // Shooting handler for weapons that instantly hit the target in crosshair after shot
     public class HitScanShootingHandler : ShootingHandlerBase
     {
-        protected BulletTrace bulletTracePrefab;
+        private HitScanShootingHandlerArgs hitScanParams => base.baseParams as HitScanShootingHandlerArgs;
 
         public HitScanShootingHandler(HitScanShootingHandlerArgs shootingParameters) 
             : base(shootingParameters)
         {
-            this.bulletTracePrefab = shootingParameters.bulletTracePrefab;
         }
 
         protected override void Shoot()
         {
-            var shootPoint = camera.transform.position;
-            var shootDir = camera.transform.forward;
+            var shootPoint = playerController.Camera.transform.position;
+            var shootDir = playerController.Camera.transform.forward;
             RaycastHit hit;
             Vector3 bulletReachPoint;
-            var ray = new Ray(camera.transform.position, shootDir);
+            var ray = new Ray(playerController.Camera.transform.position, shootDir);
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))
             {
                 bulletReachPoint = hit.point;
                 if (hit.collider.TryGetComponent<IShootingTarget>(out var target) && target != null)
                 {
-                    target.OnHit(hit.point, damage, DamageType.Shot);
+                    target.OnHit(hit.point, hitScanParams.damage, DamageType.Shot);
                 }
             }
             else

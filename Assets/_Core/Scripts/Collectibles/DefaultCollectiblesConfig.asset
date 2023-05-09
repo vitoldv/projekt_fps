@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6748ecfd1e7a0654995d0739c2624d51, type: 3}
+  m_Name: DefaultCollectiblesConfig
+  m_EditorClassIdentifier: 
+  bigHealthPack: 0
+  midHealthPack: 0
+  smallHealthPack: 0
+  pistolSmallAmmoPack: 0
+  pistolMidAmmoPack: 0
+  pistolBigAmmoPack: 0
+  rifleSmallAmmoPack: 0
+  rifleMidAmmoPack: 0
+  rifleBigAmmoPack: 0
+  shotgunSmallAmmoPack: 0
+  shotgunMidAmmoPack: 0
+  shotgunBigAmmoPack: 0
+  bfgSmallAmmoPack: 0
+  bfgMidAmmoPack: 0
+  bfgBigAmmoPack: 0
+  railgunSmallAmmoPack: 0
+  railgunMidAmmoPack: 0
+  railgunBigAmmoPack: 0

@@ -1,20 +1,15 @@
 ﻿using _Core;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using UnityEngine;
 
-namespace Assets._Core.Scripts.Saves
+namespace _Core.Saves
 {
     [Serializable]
     public struct GameSaveFileData
     {
         public PlayerProgressionData playerProgressionData;
         public int nextArena;
+        public DateTime lastSaveDate;
+        public Guid guid;
     }
 
     [Serializable]

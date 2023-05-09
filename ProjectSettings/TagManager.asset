@@ -6,6 +6,10 @@ TagManager:
   tags:
   - CinemachineTarget
   - PlayerSpawnPoint
+  - EnemySpawnPoint
+  - GameArea
+  - ArenaManager
+  - Enemy
   layers:
   - Default
   - TransparentFX

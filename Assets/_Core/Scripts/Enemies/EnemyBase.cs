@@ -1,100 +1,100 @@
-using _Core;
-using Assets._Core.Scripts.Player;
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using _Core.Player;
+using _Core.Spawners;
 
-[RequireComponent(typeof(CapsuleCollider), typeof(NavMeshAgent))]
-public abstract class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
+namespace _Core.Enemies
 {
-    public event Action<EnemyBase> OnDeath;
-    
-    [SerializeField] protected float rotationSpeed;
-    
-    protected Animator animator;
-    protected Collider collider;
-    protected NavMeshAgent navAgent;
-    protected Transform targetTransform;
 
-
-
-    public float HP { get; protected set; }
-    public bool IsDead { get; protected set; }
-
-    private void Awake()
+    [RequireComponent(typeof(CapsuleCollider), typeof(NavMeshAgent))]
+    public abstract class EnemyBase : MonoBehaviour, IShootingTarget, IPoolableObject
     {
-        animator = GetComponent<Animator>();
-        collider = GetComponent<CapsuleCollider>();
-        navAgent = GetComponent<NavMeshAgent>();
-    }
+        public event Action<EnemyBase> Defeated;
 
-    public virtual void Init(Transform target)
-    {
-        this.targetTransform = target;
-    }
+        [SerializeField] protected float rotationSpeed;
+        [SerializeField] private float initialHp;
+        protected Animator animator;
+        protected Collider collider;
+        protected NavMeshAgent navAgent;
+        protected Transform targetTransform;
 
-    protected void EnableCollider()
-    {
-        collider.enabled = true;
-    }
+        public float HP { get; protected set; }
+        public bool IsDead { get; protected set; }
 
-    protected void DisableCollider()
-    {
-        collider.enabled = false;
-    }
-
-    protected float GetDistanceToTarget()
-    {
-        return Vector3.Distance(transform.position, targetTransform.position);
-    }
-    public void SetTarget(Transform targetTransform)
-    {
-        this.targetTransform = targetTransform;
-    }
-    public void ReceiveDamage(float damageAmount)
-    {
-        HP -= damageAmount;
-        if (HP <= 0)
+        private void Awake()
         {
-            Die();
-            OnDeath?.Invoke(this);
+            animator = GetComponent<Animator>();
+            collider = GetComponent<CapsuleCollider>();
+            navAgent = GetComponent<NavMeshAgent>();
         }
-    }
 
-    protected void LookOnTarget()
-    {
-        Vector3 direction = (targetTransform.position - transform.position).normalized;
-        direction.y = 0;
-        Quaternion lookRotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
-    }
+        public virtual void Init(Transform target)
+        {
+            this.targetTransform = target;
+            HP = initialHp;
+        }
 
-    protected void UpdateTargetPosition()
-    {
-        navAgent.SetDestination(targetTransform.position);
-    }
+        protected void EnableCollider()
+        {
+            collider.enabled = true;
+        }
 
-    protected abstract void Die();
+        protected void DisableCollider()
+        {
+            collider.enabled = false;
+        }
 
-    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
-    {
-        ReceiveDamage(damage);
-    }
+        protected float GetDistanceToTarget()
+        {
+            return Vector3.Distance(transform.position, targetTransform.position);
+        }
 
-    public void Enable()
-    {
-        gameObject.SetActive(true);
-    }
+        public void ReceiveDamage(float damageAmount)
+        {
+            HP -= damageAmount;
+            if (HP <= 0)
+            {
+                Die();
+                Defeated?.Invoke(this);
+            }
+        }
 
-    public void Disable()
-    {
-        IsDead = false;
-        targetTransform = null;
-        gameObject.SetActive(false);
-    }
+        protected void LookOnTarget()
+        {
+            Vector3 direction = (targetTransform.position - transform.position).normalized;
+            direction.y = 0;
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+        }
 
-    public bool IsActive()
-    {
-        return gameObject.activeSelf;
+        protected void UpdateTargetPosition()
+        {
+            navAgent.SetDestination(targetTransform.position);
+        }
+
+        protected abstract void Die();
+
+        public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
+        {
+            ReceiveDamage(damage);
+        }
+
+        public void Enable()
+        {
+            gameObject.SetActive(true);
+        }
+
+        public void Disable()
+        {
+            IsDead = false;
+            targetTransform = null;
+            gameObject.SetActive(false);
+        }
+
+        public bool IsActive()
+        {
+            return gameObject.activeSelf;
+        }
     }
 }

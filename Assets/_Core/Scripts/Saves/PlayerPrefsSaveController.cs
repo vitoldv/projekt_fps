@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace _Core
+namespace _Core.Saves
 {
     public class PlayerPrefsSaveController : ISaveController
     {

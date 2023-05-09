@@ -1,4 +1,4 @@
-﻿namespace Assets._Core.Scripts.Player.ShootingParameters
+﻿namespace _Core.Player
 {
     public struct ShootingHandlerState
     {

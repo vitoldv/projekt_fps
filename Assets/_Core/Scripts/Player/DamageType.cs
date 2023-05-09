@@ -1,4 +1,4 @@
-﻿namespace Assets._Core.Scripts.Player
+﻿namespace _Core.Player
 {
     public enum DamageType
     {

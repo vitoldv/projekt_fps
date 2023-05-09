@@ -1,74 +1,78 @@
-using _Core;
-using Assets._Core.Scripts.Player;
+using _Core.Common;
+using _Core.Spawners;
 using UnityEngine;
-using Utils = _Core.Utils;
 
-public class ProjectileBase : MonoBehaviour, IPoolableObject
+namespace _Core.Player
 {
-    public LayerMask onDestroyLayers;
-    private Vector3 direction;
-    private float speed;
-    private float damage;
-    private float explosionRadius;
-
-    // Start is called before the first frame update
-    public void Init(Vector3 direction, float speed, float damage, float explosionRadius)
+    public class ProjectileBase : MonoBehaviour, IPoolableObject
     {
-        this.direction = direction;
-        this.speed = speed;
-        this.explosionRadius = explosionRadius;
-        this.damage = damage;         
-    }
+        public LayerMask onDestroyLayers;
+        private Vector3 direction;
+        private float speed;
+        private float damage;
+        private float explosionRadius;
 
-    // Update is called once per frame
-    void Update()
-    {
-        transform.position += direction * speed * Time.deltaTime;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (Utils.CheckCollision(other, onDestroyLayers))
+        // Start is called before the first frame update
+        public void Init(Vector3 direction, float speed, float damage, float explosionRadius)
         {
-            Explode();            
+            this.direction = direction;
+            this.speed = speed;
+            this.explosionRadius = explosionRadius;
+            this.damage = damage;
         }
-    }
 
-    private void Explode()
-    {
-        // play some effect
-        var colliders = Physics.OverlapSphere(transform.position, explosionRadius, onDestroyLayers);
-        print($"Colliders num: {colliders.Length}");
-        foreach (var collider in colliders)
+        // Update is called once per frame
+        void Update()
         {
-            print($"Collider: {collider.gameObject.name}");
-            if (collider.gameObject.TryGetComponent<IShootingTarget>(out var shootingTarget))
+            transform.position += direction * speed * Time.deltaTime;
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (Utils.CheckCollision(other, onDestroyLayers))
             {
-                Vector3 hitPoint = collider.ClosestPoint(transform.position);
-                float distanceToObject = Vector3.Distance(hitPoint, transform.position);
-                // the damage is less the further the object from epicenter
-                float actualDamage = damage * (1 - distanceToObject / explosionRadius);
-                print($"shooting target: {actualDamage}, {distanceToObject}");
-                shootingTarget.OnHit(hitPoint, actualDamage, DamageType.Explosion);
+                Explode();
             }
         }
-        Disable();
-    }
 
-    public void Enable()
-    {
-        gameObject.SetActive(true);
-    }
+        private void Explode()
+        {
+            // play some effect
+            var colliders = Physics.OverlapSphere(transform.position, explosionRadius, onDestroyLayers);
+            print($"Colliders num: {colliders.Length}");
+            foreach (var collider in colliders)
+            {
+                print($"Collider: {collider.gameObject.name}");
+                if (collider.gameObject.TryGetComponent<IShootingTarget>(out var shootingTarget))
+                {
+                    Vector3 hitPoint = collider.ClosestPoint(transform.position);
+                    float distanceToObject = Vector3.Distance(hitPoint, transform.position);
+                    // the damage is less the further the object from epicenter
+                    float actualDamage = damage * (1 - distanceToObject / explosionRadius);
+                    print($"shooting target: {actualDamage}, {distanceToObject}");
+                    shootingTarget.OnHit(hitPoint, actualDamage, DamageType.Explosion);
+                }
+            }
+            Disable();
+        }
 
-    public void Disable()
-    {
-        direction = Vector3.zero;
-        speed = 0;
-        gameObject.SetActive(false);
-    }
+        public void Enable()
+        {
+            gameObject.SetActive(true);
+        }
 
-    public bool IsActive()
-    {
-        return gameObject.activeSelf;
+        public void Disable()
+        {
+            direction = Vector3.zero;
+            speed = 0;
+            gameObject.SetActive(false);
+        }
+
+        public bool IsActive()
+        {
+            return gameObject.activeSelf;
+        }
     }
 }
+
+

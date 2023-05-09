@@ -1,4 +1,4 @@
-﻿namespace _Core
+﻿namespace _Core.Saves
 {
     public interface ISaveController
     {

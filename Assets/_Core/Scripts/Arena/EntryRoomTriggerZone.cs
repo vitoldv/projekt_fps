@@ -1,4 +1,5 @@
-﻿using System;
+﻿using _Core.Common;
+using System;
 using UnityEngine;
 
 namespace _Core.Arena

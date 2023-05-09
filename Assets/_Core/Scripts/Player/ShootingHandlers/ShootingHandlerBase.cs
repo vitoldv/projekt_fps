@@ -1,38 +1,35 @@
-﻿using Assets._Core.Scripts.Player.ShootingParameters;
-using System;
+﻿using System;
 using System.Collections;
 using UnityEngine;
 
-namespace Assets._Core.Scripts
+namespace _Core.Player
 {
     public abstract class ShootingHandlerBase
     {
         public event Action AmmoStateChanged;
         public event Action OnReloadStarted;
+        public event Action OnReloadEnded;
 
         public ShootingHandlerState State => state;
 
         private ShootingHandlerState state;
 
-
-        protected float roundsPerMinute = 300f;
-        protected float reloadTime = 1.5f;                
-        protected float damage;
         protected PlayerController playerController;
-        protected Camera camera;
-        public bool isReloading;
         protected float timeSinceLastShot = 0;
+        protected ShootingHandlerArgs baseParams;
         protected float timeBetweenShots;
+
+        public bool isReloading;
 
         public ShootingHandlerBase(ShootingHandlerArgs shootingParameters)
         {
-            this.roundsPerMinute = shootingParameters.roundsPerMinute;
-            this.reloadTime = shootingParameters.reloadTime;
+            baseParams = shootingParameters;
+            //this.baseParams.roundsPerMinute = shootingParameters.roundsPerMinute;
+            //this.baseParams.reloadTime = shootingParameters.reloadTime;
             this.state.GunShopCapacity = shootingParameters.gunShopCapacity;
             this.playerController = shootingParameters.playerController;
-            this.damage = shootingParameters.damage;
-            this.camera = shootingParameters.camera;
-            timeBetweenShots = 60f / roundsPerMinute;
+            //this.baseParams.damage = shootingParameters.damage;
+            timeBetweenShots = 60f / shootingParameters.roundsPerMinute;
             this.state.CurrentAmmoAmount = state.GunShopCapacity;
             this.state.CurrentAmmoAmountTotal = shootingParameters.initialAmmoAmount - state.GunShopCapacity;
         }
@@ -52,15 +49,15 @@ namespace Assets._Core.Scripts
             // if player ran out of ammo and there is some carried ammo or if reload button was pressed and current ammo is less then gunshop capacity
             if (((state.CurrentAmmoAmount == 0 && state.CurrentAmmoAmountTotal > 0) || (Input.GetKeyDown(KeyCode.R) && state.CurrentAmmoAmount < state.GunShopCapacity)) && !isReloading)
             {
-                playerController.StartCoroutine(Reload());
+                playerController.StartCoroutine(C_Reload());
             }
         }
 
-        private IEnumerator Reload()
+        private IEnumerator C_Reload()
         {
             isReloading = true;
-
-            yield return new WaitForSeconds(reloadTime);
+            OnReloadStarted?.Invoke();
+            yield return new WaitForSeconds(baseParams.reloadTime);
             if(state.CurrentAmmoAmount == 0)
             {
                 if (state.CurrentAmmoAmountTotal <= state.GunShopCapacity)
@@ -90,6 +87,7 @@ namespace Assets._Core.Scripts
             }
 
             AmmoStateChanged?.Invoke();
+            OnReloadEnded?.Invoke();
             isReloading = false;
         }
 
@@ -97,6 +95,14 @@ namespace Assets._Core.Scripts
         {
             state.CurrentAmmoAmountTotal += ammoAmount;
             AmmoStateChanged?.Invoke();
+        }
+
+        public void SetUpgradedParams(float newReloadTimeValue, float newDamageValue, int newGunShopCapacityValue)
+        {
+            this.state.GunShopCapacity = newGunShopCapacityValue;
+            this.baseParams.gunShopCapacity = newGunShopCapacityValue;
+            this.baseParams.damage = newDamageValue;
+            this.baseParams.reloadTime = newReloadTimeValue;
         }
 
         protected virtual void Shoot() { }

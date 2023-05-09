@@ -1,27 +1,24 @@
-﻿using Assets._Core.Scripts.Player.ShootingParameters;
+﻿using _Core.Spawners;
 
-namespace Assets._Core.Scripts.Player.ShootingHandlers
+namespace _Core.Player
 {
     // Shooting handler for weapons that launch projectile
     public class ProjectileShootingHandler : ShootingHandlerBase
     {
-        protected ProjectileBase projectilePrefab;
-        protected float projectileSpeed;
-        protected float explosionRadius;
+        private ProjectileShootingHandlerArgs projectileParams => base.baseParams as ProjectileShootingHandlerArgs;
+
 
         public ProjectileShootingHandler(ProjectileShootingHandlerArgs shootingParameters)
             : base(shootingParameters)
         {
-            this.explosionRadius = shootingParameters.explosionRadius;
-            this.projectilePrefab = shootingParameters.projectilePrefab;
         }
 
         protected override void Shoot()
         {
-            var shootPoint = camera.transform.position;
-            var shootDir = camera.transform.forward;
-            var projectile = WeaponSpawner.SpawnBFGProjectile(camera.transform.position + camera.transform.forward * 2);
-            projectile.Init(shootDir, 2, damage, explosionRadius);
+            var shootPoint = playerController.Camera.transform.position;
+            var shootDir = playerController.Camera.transform.forward;
+            var projectile = WeaponSpawner.SpawnBFGProjectile(playerController.Camera.transform.position + playerController.Camera.transform.forward * 2);
+            projectile.Init(shootDir, 2, projectileParams.damage, projectileParams.explosionRadius);
         }
     }
 }

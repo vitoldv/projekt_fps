@@ -1,43 +1,33 @@
-﻿using _Core;
+﻿using _Core.Collectibles;
+using _Core.Common;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CollectibleSpawner : SpawnerBase<CollectibleSpawner>
+namespace _Core.Spawners
 {
-    [SerializeField] private HealthCollectible healthCollectiblePrefab;
-    [SerializeField] private AmmoCollectible ammoCollectiblePreafab;
-
-    private List<HealthCollectible> healthCollectiblePool = new List<HealthCollectible>();
-    private List<AmmoCollectible> ammoCollectiblePool = new List<AmmoCollectible>();
-
-    public static HealthCollectible SpawnHealthCollectible()
+    public class CollectibleSpawner : SpawnerBase<CollectibleSpawner>
     {
-        return inst.Spawn(inst.healthCollectiblePool, inst.healthCollectiblePrefab);
+        [SerializeField] private HealthCollectible healthCollectiblePrefab;
+        [SerializeField] private AmmoCollectible ammoCollectiblePreafab;
+
+
+        private List<HealthCollectible> healthCollectiblePool = new List<HealthCollectible>();
+        private List<AmmoCollectible> ammoCollectiblePool = new List<AmmoCollectible>();
+
+        public static HealthCollectible SpawnHealthCollectible(HealthCollectible.Size healthSize)
+        {
+            var health = inst.Spawn(inst.healthCollectiblePool, inst.healthCollectiblePrefab);
+            health.Init(healthSize);
+            return health;
+        }
+
+        public static AmmoCollectible SpawnAmmoCollectible(WeaponType weaponType, AmmoCollectible.Size ammoSize)
+        {
+            var ammoCollectible = inst.Spawn(inst.ammoCollectiblePool, inst.ammoCollectiblePreafab);
+            ammoCollectible.Init(ammoSize, weaponType);
+            return ammoCollectible;
+        }
     }
 
-    public static AmmoCollectible SpawnAmmoCollectible(int ammoAmount, WeaponType weaponType)
-    {
-        var ammoCollectible = inst.Spawn(inst.ammoCollectiblePool, inst.ammoCollectiblePreafab);
-        ammoCollectible.ammoAmount = ammoAmount;
-        ammoCollectible.weaponType = weaponType;
-        return ammoCollectible;
-    }
-
-    public WeaponType a;
-    public int ammo;
-    public Transform p;
-
-    [ContextMenu("Piska")]
-    public void P()
-    {
-        var c = SpawnAmmoCollectible(ammo, a);
-        c.transform.position = p.position;
-    }  
-    
-    [ContextMenu("Huiska")]
-    public void S()
-    {
-        var c = SpawnHealthCollectible();
-        c.transform.position = p.position;
-    }
 }
+

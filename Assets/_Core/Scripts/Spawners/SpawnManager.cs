@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using _Core.Interfaces;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace _Core
+namespace _Core.Spawners
 {
     public abstract class SpawnerBase<T> : Singleton<T> where T: MonoBehaviour
     {

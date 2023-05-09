@@ -1,108 +1,113 @@
-﻿using Assets._Core.Scripts.Saves;
-using System.IO;
+﻿using System.IO;
 using System.Xml.Serialization;
 using System;
 using UnityEngine;
+using _Core.Interfaces;
+using System.Collections.Generic;
 
-namespace _Core
+namespace _Core.Saves
 {
     public class SaveManager : Singleton<SaveManager>
     {
-        private ISaveController _saveController = new PlayerPrefsSaveController();
-
-        /// <summary>
-        /// ///////////////////////////////////
-        /// </summary>
-
-        private string SAVE_FILES_FOLDER_PATH;
+        private string saveFilesFolderLocation;
 
         protected override void Initialize()
         {
-            inst.SAVE_FILES_FOLDER_PATH = Application.persistentDataPath + "/gameSave.xml";
+            inst.saveFilesFolderLocation = Path.Combine(Application.persistentDataPath, "saves");
         }
 
-        //[ContextMenu("SaveData")]
-        //public void SaveData()
+        //FOR TESTING
+        //public GameSaveFileData testData;
+        //public bool isN;
+
+        //[ContextMenu("Test")]
+        //public void Test()
         //{
-        //    GameSaveFileData data = new GameSaveFileData
+        //    SaveGameSaveFile(testData, isN);
+        //}
+
+        //[ContextMenu("Test2")]
+        //public void Test2()
+        //{
+        //    var files = LoadGameSaveFiles();
+        //    foreach (var item in files)
         //    {
-        //        playerProgressionData = new PlayerProgressionData
-        //        {
-        //            isDashPurchased = true,
-        //            isQuakePurchased = false,
-        //            dashLevelPurchased = 2,
-        //            quakeLevelPurchased = 0,
-        //            weaponPurchased = WeaponType.Pistol | WeaponType.Rifle | WeaponType.BFG,
-        //            pistolLevelPurchased = 1,
-        //            riflelLevelPurchased = 0,
-        //            shotgunLevelPurchased = 0,
-        //            bfgLevelPurchased = 0,
-        //            railgunLevelPurchased = 0
-        //        },
-        //        nextArena = 3
-        //    };
-        //    SaveGame(data);
-
+        //        print(Print(item));
+        //    }
         //}
 
-        //[ContextMenu("LoadData")]
-        //public void LoadData()
+        //private string Print(GameSaveFileData saveFileData)
         //{
-        //    GameSaveFileData loadedData = LoadGame();
+        //    return "Player Progression Data:\n" +
+        //        "- isDashPurchased: " + saveFileData.playerProgressionData.isDashPurchased + "\n" +
+        //        "- isQuakePurchased: " + saveFileData.playerProgressionData.isQuakePurchased + "\n" +
+        //        "- isDoubleJumpPurchased: " + saveFileData.playerProgressionData.isDoubleJumpPurchased + "\n" +
+        //        "- dashLevelPurchased: " + saveFileData.playerProgressionData.dashLevelPurchased + "\n" +
+        //        "- quakeLevelPurchased: " + saveFileData.playerProgressionData.quakeLevelPurchased + "\n" +
+        //        "- weaponPurchased: " + saveFileData.playerProgressionData.weaponPurchased + "\n" +
+        //        "- pistolLevelPurchased: " + saveFileData.playerProgressionData.pistolLevelPurchased + "\n" +
+        //        "- riflelLevelPurchased: " + saveFileData.playerProgressionData.riflelLevelPurchased + "\n" +
+        //        "- shotgunLevelPurchased: " + saveFileData.playerProgressionData.shotgunLevelPurchased + "\n" +
+        //        "- bfgLevelPurchased: " + saveFileData.playerProgressionData.bfgLevelPurchased + "\n" +
+        //        "- railgunLevelPurchased: " + saveFileData.playerProgressionData.railgunLevelPurchased + "\n\n" +
+        //        "Next Arena: " + saveFileData.nextArena + "\n" +
+        //        "Last Save Date: " + saveFileData.lastSaveDate + "\n" +
+        //        "GUID: " + saveFileData.guid;
         //}
 
-
-        public static void SaveGame(GameSaveFileData saveData)
+        public static void SaveGameSaveFile(GameSaveFileData saveData)
         {
-            // Create the XML serializer
-            XmlSerializer serializer = new XmlSerializer(typeof(GameSaveFileData));
-
-            // Create the stream to write the file
-            FileStream fileStream = new FileStream(inst.SAVE_FILES_FOLDER_PATH, FileMode.Create);
-
-            // Serialize the data to the file
-            serializer.Serialize(fileStream, saveData);
-
-            // Close the file stream
-            fileStream.Close();
-        }
-
-        public static GameSaveFileData LoadGame()
-        {
-            // Check if the file exists
-            if (!File.Exists(inst.SAVE_FILES_FOLDER_PATH))
+            if (!Directory.Exists(inst.saveFilesFolderLocation))
             {
-                Debug.LogWarning("No save file found.");
-                return new GameSaveFileData();
+                Directory.CreateDirectory(inst.saveFilesFolderLocation);
             }
 
-            // Create the XML serializer
+            if (saveData.guid == Guid.Empty)
+            {
+                saveData.guid = Guid.NewGuid();
+            }
+            saveData.lastSaveDate = DateTime.Now;
+
+            var path = Path.Combine(inst.saveFilesFolderLocation, $"gamesave_{saveData.guid.ToString()}.xml");
+            path = path.Replace("\\", "/");
             XmlSerializer serializer = new XmlSerializer(typeof(GameSaveFileData));
-
-            // Create the stream to read the file
-            FileStream fileStream = new FileStream(inst.SAVE_FILES_FOLDER_PATH, FileMode.Open);
-
-            // Deserialize the data from the file
-            GameSaveFileData loadedData = (GameSaveFileData)serializer.Deserialize(fileStream);
-
-            // Close the file stream
+            FileStream fileStream = new FileStream(path, FileMode.Create);
+            serializer.Serialize(fileStream, saveData);
             fileStream.Close();
+        }
 
-            // Fill any new variables with default values using reflection
-            FillNewVariablesWithDefaultValues(loadedData);
+        public static GameSaveFileData[] LoadGameSaveFiles()
+        {
+            if(!Directory.Exists(inst.saveFilesFolderLocation))
+            {
+                Directory.CreateDirectory(inst.saveFilesFolderLocation);
+                Debug.LogWarning("No save file found.");
+                return null;
+            }
+
+            var saveFilesPaths = Directory.GetFiles(inst.saveFilesFolderLocation);
+            var gameSaveFileDatas = new List<GameSaveFileData>();
+
+            foreach (var saveFilePath in saveFilesPaths)
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(GameSaveFileData));
+                FileStream fileStream = new FileStream(saveFilePath, FileMode.Open);
+                GameSaveFileData loadedData = (GameSaveFileData)serializer.Deserialize(fileStream);
+                fileStream.Close();
+                FillNewVariablesWithDefaultValues(loadedData);
+                gameSaveFileDatas.Add(loadedData);
+            }
 
             // Return the loaded data
-            return loadedData;
+            return gameSaveFileDatas.ToArray();
         }
 
         private static void FillNewVariablesWithDefaultValues(object obj)
         {
             // Get the type of the object
             Type objectType = obj.GetType();
-
             // Get the fields of the object
             var fields = objectType.GetFields();
-
             // Loop through each field
             foreach (var field in fields)
             {

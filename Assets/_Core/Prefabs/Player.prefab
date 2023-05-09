@@ -292,7 +292,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7292876082884286351}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.874, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -326,13 +326,15 @@ MonoBehaviour:
   dashSpeed: 18
   slideDistance: 3.5
   slideSpeed: 18
-  shutterFreezeTime: 3
-  shutterForce: 20
-  IsDoubleJumpEnabled: 1
+  quakeFreezeTime: 0
+  quakeForce: 0
   dashCooldown: 1.5
-  shutterCooldown: 1.5
-  shutterRadius: 2
-  shutterDamage: 2
+  quakeCooldown: 1.5
+  quakeRadius: 2
+  quakeDamage: 2
+  IsDoubleJumpEnabled: 1
+  IsDashEnabled: 0
+  IsQuakeEnabled: 0
   scatterConeAngle: 3
   roundsPerMinute: 300
   reloadTime: 5

@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using _Core.Player;
+using UnityEngine;
 
-namespace Assets._Core.Scripts.Enemies
+namespace _Core.Enemies
 {
     public class WalkingEnemy : EnemyBase
     {
@@ -10,7 +11,7 @@ namespace Assets._Core.Scripts.Enemies
         private readonly int IsAttackingHash = Animator.StringToHash("IsAttacking");
 
         [Header("General")]
-        [SerializeField] private float initialHp;
+
         [SerializeField] private float corpseLifetime;
         [Header("Movement")]
         [SerializeField] private float walkSpeed;
@@ -31,7 +32,7 @@ namespace Assets._Core.Scripts.Enemies
             SetSpeed(walkSpeed);
             EnableWalking();
             EnableCollider();
-            HP = initialHp;
+
             timer = 0;
             isFirstAttackMade = false;
             IsDead = false;

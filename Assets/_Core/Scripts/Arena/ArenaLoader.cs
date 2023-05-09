@@ -1,50 +1,53 @@
 using UnityEngine;
-using _Core;
 using System;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using _Core.Interfaces;
 
-public class ArenaLoader : Singleton<ArenaLoader>
+namespace _Core.Arena
 {
-    public static event Action<string> ArenaLoaded;
-    
-    public string currentArenaName;
-    [SerializeField] private List<string> arenaNames;
-
-    public static void LoadArena(int arenaId)
+    public class ArenaLoader : Singleton<ArenaLoader>
     {
-        inst.StartCoroutine(inst.LoadSceneAsync(inst.arenaNames[arenaId]));
-    }
+        public static event Action<string> ArenaLoaded;
 
-    public static void UnloadArena()
-    {
-        inst.StartCoroutine(inst.UnloadSceneAsync(inst.currentArenaName));
-    }
+        public string currentArenaName;
+        [SerializeField] private List<string> arenaNames;
 
-    private IEnumerator LoadSceneAsync(string sceneName)
-    {
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
-
-        while (!asyncLoad.isDone)
+        public static void LoadArena(int arenaId)
         {
-            // Update progress bar or loading text
-            // You can also use asyncLoad.progress to get the loading progress
-
-            yield return null;
+            inst.StartCoroutine(inst.LoadSceneAsync(inst.arenaNames[arenaId]));
         }
 
-        currentArenaName = sceneName;
-        ArenaLoaded?.Invoke(sceneName);
-    }
-
-    private IEnumerator UnloadSceneAsync(string sceneName)
-    {
-        AsyncOperation asyncUnload = SceneManager.UnloadSceneAsync(sceneName);
-
-        while (!asyncUnload.isDone)
+        public static void UnloadArena()
         {
-            yield return null;
+            inst.StartCoroutine(inst.UnloadSceneAsync(inst.currentArenaName));
+        }
+
+        private IEnumerator LoadSceneAsync(string sceneName)
+        {
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+
+            while (!asyncLoad.isDone)
+            {
+                // Update progress bar or loading text
+                // You can also use asyncLoad.progress to get the loading progress
+
+                yield return null;
+            }
+
+            currentArenaName = sceneName;
+            ArenaLoaded?.Invoke(sceneName);
+        }
+
+        private IEnumerator UnloadSceneAsync(string sceneName)
+        {
+            AsyncOperation asyncUnload = SceneManager.UnloadSceneAsync(sceneName);
+
+            while (!asyncUnload.isDone)
+            {
+                yield return null;
+            }
         }
     }
 }

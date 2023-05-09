@@ -1,7 +1,10 @@
-using Assets._Core.Scripts.Player;
 using UnityEngine;
 
-public interface IShootingTarget
+namespace _Core.Player
 {
-    public void OnHit(Vector3 hitPoint, float damage, DamageType damageType);
+    public interface IShootingTarget
+    {
+        public void OnHit(Vector3 hitPoint, float damage, DamageType damageType);
+    }
 }
+
