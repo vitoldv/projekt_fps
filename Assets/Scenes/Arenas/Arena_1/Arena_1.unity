@@ -318,7 +318,6 @@ GameObject:
   - component: {fileID: 195703154}
   - component: {fileID: 195703153}
   - component: {fileID: 195703152}
-  - component: {fileID: 195703151}
   m_Layer: 0
   m_Name: Box_ShootingTarget
   m_TagString: Untagged
@@ -341,18 +340,6 @@ Transform:
   m_Father: {fileID: 8379900264020877776}
   m_RootOrder: 32
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &195703151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 195703149}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e80b86de590a65643ad7033294ae7c21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!65 &195703152
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1542,10 +1529,14 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 2048
   collectiblesConfig: {fileID: 0}
+  dashUpgradeData: {fileID: 0}
+  quakeUpgradeData: {fileID: 0}
+  weaponUpgrades: []
   DefaultWeaponConfiguration: {fileID: 11400000, guid: dbb89ab17311d7349a300588e1733ef4,
     type: 2}
   playerControllerPrefab: {fileID: 0}
   hudPrefab: {fileID: 0}
+  pauseMenuPrefab: {fileID: 0}
 --- !u!4 &1287235610
 Transform:
   m_ObjectHideFlags: 0

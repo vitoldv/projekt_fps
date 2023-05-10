@@ -8,6 +8,7 @@ namespace _Core.Saves
     {
         public PlayerProgressionData playerProgressionData;
         public int nextArena;
+        public int rewardPoints;
         public DateTime lastSaveDate;
         public Guid guid;
     }
@@ -28,5 +29,18 @@ namespace _Core.Saves
         public int shotgunLevelPurchased;
         public int bfgLevelPurchased;
         public int railgunLevelPurchased;
+
+        public int GetWeaponLevelForType(WeaponType weapon)
+        {
+            switch (weapon)
+            {
+                case WeaponType.Pistol: return pistolLevelPurchased;
+                case WeaponType.Rifle: return riflelLevelPurchased;
+                case WeaponType.Shotgun: return shotgunLevelPurchased;
+                case WeaponType.BFG: return bfgLevelPurchased;
+                case WeaponType.Railgun: return railgunLevelPurchased;
+                default: return -1;
+            }
+        }
     }
 }

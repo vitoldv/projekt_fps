@@ -4,13 +4,13 @@ using _Core.Player;
 using _Core.Upgrades;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class UpgradesMenuUIController : MonoBehaviour
 {
-    public event Action<WeaponType> WeaponUnlocked;
-    public event Action<WeaponUpgradeData, int> WeaponUpgraded;
+    public event Action UpgradePurchased;
 
     [Header("References")]
     [SerializeField] private LayoutGroup weaponsLayout;
@@ -65,15 +65,14 @@ public class UpgradesMenuUIController : MonoBehaviour
         var saveData = GameManager.CurrentPlayerProgressionData;
         if (upgradesData is DashUpgradeData)
         {
-            playerReference.IsDashEnabled = true;            
             saveData.isDashPurchased = true;
         }
         if (upgradesData is QuakeUpgradeData)
         {
-            playerReference.IsQuakeEnabled = true;
             saveData.isQuakePurchased = true;
         }
         GameManager.CurrentPlayerProgressionData = saveData;
+        UpgradePurchased?.Invoke();
     }
 
     private void OnSkillUpgraded(ISkillUpgradeLevel upgradeLevelData, int level)
@@ -81,27 +80,48 @@ public class UpgradesMenuUIController : MonoBehaviour
         var saveData = GameManager.CurrentPlayerProgressionData;
         if (upgradeLevelData is DashUpgradeLevel dashUpgradeLevel)
         {
-            playerReference.dashCooldown = dashUpgradeLevel.ReloadTime;
-            playerReference.dashSpeed = dashUpgradeLevel.Speed;
             saveData.dashLevelPurchased = level;
         }
         if (upgradeLevelData is QuakeUpgradeLevel quakeUpgradeLevel)
         {
-            playerReference.quakeCooldown = quakeUpgradeLevel.ReloadTime;
-            playerReference.quakeDamage = quakeUpgradeLevel.Damage;
-            playerReference.quakeRadius = quakeUpgradeLevel.Radius;
             saveData.quakeLevelPurchased = level;
         }
         GameManager.CurrentPlayerProgressionData = saveData;
+        UpgradePurchased?.Invoke();
     }
 
     private void OnWeaponUnlocked(WeaponUpgradeData upgradeData)
     {
-        WeaponUnlocked?.Invoke(upgradeData.weaponType);
+        var saveData = GameManager.CurrentPlayerProgressionData;
+        saveData.weaponPurchased |= upgradeData.weaponType;
+        GameManager.CurrentPlayerProgressionData = saveData;
+        UpgradePurchased?.Invoke();
     }
 
     private void OnWeaponUpgradePurchased(WeaponUpgradeData upgradeData, int upgradeLevel)
     {
-        WeaponUpgraded?.Invoke(upgradeData, upgradeLevel);
+        var saveData = GameManager.CurrentPlayerProgressionData;
+        switch (upgradeData.weaponType)
+        {
+            case WeaponType.Pistol:
+                saveData.pistolLevelPurchased = upgradeLevel;
+                break;
+            case WeaponType.Rifle:
+                saveData.riflelLevelPurchased = upgradeLevel;
+                break;
+            case WeaponType.Shotgun:
+                saveData.shotgunLevelPurchased = upgradeLevel;
+                break;
+            case WeaponType.BFG:
+                saveData.bfgLevelPurchased = upgradeLevel;
+                break;
+            case WeaponType.Railgun:
+                saveData.railgunLevelPurchased = upgradeLevel;
+                break;
+            default:
+                break;
+        }
+        GameManager.CurrentPlayerProgressionData = saveData;
+        UpgradePurchased?.Invoke();
     }
 }

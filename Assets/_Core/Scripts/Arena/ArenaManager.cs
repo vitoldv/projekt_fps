@@ -14,12 +14,14 @@ namespace _Core.Arena
 {
     public class ArenaManager : MonoBehaviour
     {
-        public event Action<int> ArenaFinished;
+        // arena index, reward points
+        public event Action<int, int> ArenaFinished;
         
         private int currentWave;
         private ArenaWaveDescription currentArenaDesctiption;
 
         [SerializeField] private float waveCooldown;
+        [SerializeField] private int rewardPoints;
 
         // Current arena data
         [SerializeField] private List<ArenaWaveDescription> wavesDescription;
@@ -186,7 +188,7 @@ namespace _Core.Arena
         private void FinishArena()
         {
             print("ARENA FINISHED");
-            ArenaFinished?.Invoke(arenaIndex);
+            ArenaFinished?.Invoke(arenaIndex, rewardPoints);
         }
 
         public bool ShouldDropHealthCollectible(float maxPlayerHealth, float currentPlayerHealth, out HealthCollectible.Size healthSize)

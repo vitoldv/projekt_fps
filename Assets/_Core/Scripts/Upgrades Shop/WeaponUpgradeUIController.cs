@@ -57,10 +57,10 @@ public class WeaponUpgradeUIController : MonoBehaviour
     private void OnUpgradeButtonClick()
     {
         print("On upgrade");
-        if (currentLevel.cost <= GameManager.PlayerPoints)
+        if (currentLevel.cost <= GameManager.RewardPoints)
         {
             print("On upgrade succ");
-            GameManager.PlayerPoints -= currentLevel.cost;
+            GameManager.RewardPoints -= currentLevel.cost;
             LevelPurchased?.Invoke(upgradeData, levelsPurchased);
             levelsPurchased++;
             SetViewDataForCurrentLevel();            
@@ -70,10 +70,10 @@ public class WeaponUpgradeUIController : MonoBehaviour
     private void OnUnlockButtonClick()
     {
         print("On unlock");
-        if (currentLevel.cost <= GameManager.PlayerPoints)
+        if (currentLevel.cost <= GameManager.RewardPoints)
         {
             print("On unlock succ");
-            GameManager.PlayerPoints -= currentLevel.cost;
+            GameManager.RewardPoints -= currentLevel.cost;
             isUnlocked = true;
             unlockButton.gameObject.SetActive(false);
             SetViewDataForCurrentLevel();

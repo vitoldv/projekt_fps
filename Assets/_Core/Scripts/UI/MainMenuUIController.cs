@@ -60,6 +60,7 @@ namespace _Core.UI
         {
             var newGameSaveFile = new GameSaveFileData();
             newGameSaveFile.nextArena = 0;
+            newGameSaveFile.playerProgressionData.weaponPurchased = WeaponType.Pistol;
             GameStarted?.Invoke(newGameSaveFile);
         }
 

@@ -6,7 +6,7 @@ namespace _Core.Common
 {
     public class AchievementsManager : Singleton<AchievementsManager>
     {
-        public static void SetAsComplete(Achievement achievement)
+        public static void SetAsComplete(Achievements achievement)
         {
 #if UNITY_EDITOR
             Debug.Log($"You got the {achievement.ToString()} achievement!");

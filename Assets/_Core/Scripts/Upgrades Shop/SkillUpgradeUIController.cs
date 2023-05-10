@@ -58,10 +58,10 @@ public class SkillUpgradeUIController : MonoBehaviour
     private void OnUpgradeButtonClick()
     {
         print("On upgrade");
-        if (currentLevel.Cost <= GameManager.PlayerPoints)
+        if (currentLevel.Cost <= GameManager.RewardPoints)
         {
             print("On upgrade succ");
-            GameManager.PlayerPoints -= currentLevel.Cost;
+            GameManager.RewardPoints -= currentLevel.Cost;
             SkillLevelPurchased?.Invoke(currentLevel, levelsPurchased);
             levelsPurchased++;
             SetViewDataForCurrentLevel();
@@ -71,10 +71,10 @@ public class SkillUpgradeUIController : MonoBehaviour
     private void OnUnlockButtonClick()
     {
         print("On unlock");
-        if (currentLevel.Cost <= GameManager.PlayerPoints)
+        if (currentLevel.Cost <= GameManager.RewardPoints)
         {
             print("On unlock succ");
-            GameManager.PlayerPoints -= currentLevel.Cost;
+            GameManager.RewardPoints -= currentLevel.Cost;
             isUnlocked = true;
             unlockButton.gameObject.SetActive(false);
             SetViewDataForCurrentLevel();

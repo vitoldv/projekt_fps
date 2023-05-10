@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using _Core.Saves;
 using _Core.Common;
-using Cinemachine.Utility;
 
 namespace _Core.Player
 {
@@ -38,45 +37,75 @@ namespace _Core.Player
         public Camera Camera => this.camera;
         public bool IsFrozen { get; set; }
 
-        private float currentHpValue;
 
         [Header("Movement Parameters")]
-        public float movementSpeed = 5f;
-        public float sprintSpeed = 7.5f;
-        public float crouchSpeed = 2.5f;
-        public float mouseSensitivity = 3f;
-        public float jumpForce = 8f;
-        public float crouchHeight = 0.5f;
-        public float gravityForce = -15f;
+        [SerializeField] private float movementSpeed = 5f;
+        [SerializeField] private float sprintSpeed = 7.5f;
+        [SerializeField] private float crouchSpeed = 2.5f;
+        [SerializeField] private float mouseSensitivity = 3f;
+        [SerializeField] private float jumpForce = 8f;
+        [SerializeField] private float crouchHeight = 0.5f;
+        [SerializeField] private float gravityForce = -15f;
 
         [Header("Ability Parameters")]
-        public float dashDistance;
-        public float dashSpeed;
-        public float slideDistance;
-        public float slideSpeed;
-        public float quakeFreezeTime;
-        public float quakeForce;
-        public float dashCooldown = 1.5f;
-        public float quakeCooldown = 1.5f;
-        public float quakeRadius = 2;
-        public float quakeDamage = 2;
+        [SerializeField] private float dashDistance;
+        [SerializeField] private float dashSpeed;
+        [SerializeField] private float slideDistance;
+        [SerializeField] private float slideSpeed;
+        [SerializeField] private float quakeFreezeTime;
+        [SerializeField] private float quakeForce;
+        [SerializeField] private float dashCooldown = 1.5f;
+        [SerializeField] private float quakeCooldown = 1.5f;
+        [SerializeField] private float quakeRadius = 2;
+        [SerializeField] private float quakeDamage = 2;
 
         public bool IsDoubleJumpEnabled;
         public bool IsDashEnabled;
         public bool IsQuakeEnabled;
 
+        #region Unlocks properties
+
+        public float DashCooldown
+        {
+            get => dashCooldown;
+            set => dashCooldown = value;
+        }
+
+        public float DashSpeed
+        {
+            get => dashSpeed;
+            set => dashSpeed = value;
+        }
+
+        public float QuakeCooldown
+        {
+            get => quakeCooldown;
+            set => quakeCooldown = value;
+        }
+
+        public float QuakeRadius
+        {
+            get => quakeRadius;
+            set => quakeRadius = value;
+        }
+
+        public float QuakeDamage
+        {
+            get => quakeDamage;
+            set => quakeDamage = value;
+        }
+
+        #endregion
+
+
         [Header("Shooting Parameters")]
-        public float scatterConeAngle = 3f;
-        public float roundsPerMinute = 300f;
-        public float reloadTime = 1.5f;
-        public int shotsMax = 30;
-        public bool isProjectile;
-        public ProjectileBase projectilePrefab;
-        public BulletTrace bulletTracePrefab;
+        [SerializeField] private float scatterConeAngle = 3f;
+        [SerializeField] private float roundsPerMinute = 300f;
+        [SerializeField] private float reloadTime = 1.5f;
+        [SerializeField] private int shotsMax = 30;
 
-        private WeaponType unlockedWeapons = (WeaponType)31;
-        public WeaponType selectedWeapon = 0;
-
+        public WeaponType UnlockedWeapons = (WeaponType)31;
+        public WeaponType SelectedWeapon = 0;
         public ShootingHandlerState SelectedWeaponState => shootingHandler.State;
 
         [Header("Other settings")]
@@ -95,6 +124,7 @@ namespace _Core.Player
         private CapsuleCollider capsuleCollider;
 
         // Private variables
+        private float currentHpValue;
         private bool isGrounded;
         private float verticalRotation = 0f;
         private float verticalVelocity = 0f;
@@ -102,18 +132,14 @@ namespace _Core.Player
         private bool isCrouching;
         private bool isDashing;
         private bool isSliding;
-
-        private int jumpsMade = 0;
-
-        private Vector3 lastMoveDirection;
         private bool isVerticalFreeze;
         private bool isQuaking;
-
-        private float timeSinceLastQuake = 0;
-        private float timeSinceLastDash = 0;
-
+        private int jumpsMade = 0;
         private bool isInitialized;
         
+        private Vector3 lastMoveDirection;
+        private float timeSinceLastQuake = 0;
+        private float timeSinceLastDash = 0;        
 
         private ShootingHandlerBase shootingHandler;
 
@@ -137,8 +163,8 @@ namespace _Core.Player
             IsDoubleJumpEnabled = playerProgressionData.isDoubleJumpPurchased;
             IsDashEnabled = playerProgressionData.isDashPurchased;
             IsQuakeEnabled = playerProgressionData.isQuakePurchased;
-            unlockedWeapons = playerProgressionData.weaponPurchased;
-
+            UnlockedWeapons = playerProgressionData.weaponPurchased;
+           
             ReloadShootingHandlers();
             SelectWeapon(WeaponType.Pistol);
 
@@ -243,13 +269,13 @@ namespace _Core.Player
             }
 
             timeSinceLastDash += Time.deltaTime;
-            if (Input.GetKeyDown(KeyCode.E) && !isDashing && timeSinceLastDash > dashCooldown)
+            if (IsDashEnabled && Input.GetKeyDown(KeyCode.E) && !isDashing && timeSinceLastDash > dashCooldown)
             {
                 StartCoroutine(C_Dash(lastMoveDirection));
             }
 
             timeSinceLastQuake += Time.deltaTime;
-            if (Input.GetKeyDown(KeyCode.Q) && !isQuaking && timeSinceLastQuake > quakeCooldown)
+            if (IsQuakeEnabled &&  Input.GetKeyDown(KeyCode.Q) && !isQuaking && timeSinceLastQuake > quakeCooldown)
             {
                 StartCoroutine(C_Quake());
             }
@@ -283,9 +309,9 @@ namespace _Core.Player
 
         private void SelectWeapon(WeaponType weapon)
         {
-            if (unlockedWeapons.HasFlag(weapon) && selectedWeapon != weapon)
+            if (UnlockedWeapons.HasFlag(weapon) && SelectedWeapon != weapon)
             {
-                selectedWeapon = weapon;
+                SelectedWeapon = weapon;
 
                 if (shootingHandler != null)
                 {
@@ -566,12 +592,10 @@ namespace _Core.Player
 
         public void UpgradeWeapon(WeaponUpgradeData.WeaponUpgradeLevel weaponUpgrade, WeaponType weapon)
         {
-            shootingHandlers[weapon].SetUpgradedParams(weaponUpgrade.newReloadTimeValue, weaponUpgrade.newMaxCapacityValue, weaponUpgrade.newDamageValue);            
-        }
-
-        public void UnlockWeapon(WeaponType weapon)
-        {
-            unlockedWeapons |= weapon;            
+            if(UnlockedWeapons.HasFlag(weapon))
+            {
+                shootingHandlers[weapon].SetUpgradedParams(weaponUpgrade.newReloadTimeValue, weaponUpgrade.newMaxCapacityValue, weaponUpgrade.newDamageValue);
+            }            
         }
 
         public Dictionary<WeaponType, ShootingHandlerState> GetWeaponsAmmoInfo()
@@ -579,7 +603,7 @@ namespace _Core.Player
             var dict = new Dictionary<WeaponType, ShootingHandlerState>();
             foreach (var weaponType in Enum.GetValues(typeof(WeaponType)).Cast<WeaponType>())
             {
-                if(unlockedWeapons.HasFlag(weaponType))
+                if(UnlockedWeapons.HasFlag(weaponType))
                 {
                     dict.Add(weaponType, shootingHandlers[weaponType].State);
                 }

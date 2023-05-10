@@ -37,7 +37,7 @@ namespace _Core.UI
             player.WeaponSelected += OnPlayerWeaponSelected;
             player.PlayerDied += OnPlayerDeath;
             hpAmount.text = $"{player.CurrentHP}";
-            OnPlayerWeaponSelected(player.selectedWeapon, player.SelectedWeaponState);
+            OnPlayerWeaponSelected(player.SelectedWeapon, player.SelectedWeaponState);
         }
 
         private void OnPlayerHealthValueChanged(float newHealthValue)

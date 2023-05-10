@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace _Core.Common
 {
-    public enum Achievement
+    public enum Achievements
     {
         KILL_10_ENEMIES_TOTAL,
         ENHANCE_PISTOL_FULL,

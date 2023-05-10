@@ -15,14 +15,17 @@ MonoBehaviour:
   title: Pistol
   image: {fileID: 21300000, guid: 52b54267370149f408d4c1ac1a3f9296, type: 3}
   unlockCost: 10
-  weaponType: 17
+  weaponType: 16
   upgradeLevels:
   - cost: 5
     newReloadTimeValue: 3
     newMaxCapacityValue: 35
+    newDamageValue: 0
   - cost: 10
     newReloadTimeValue: 2
     newMaxCapacityValue: 30
+    newDamageValue: 0
   - cost: 15
     newReloadTimeValue: 1
     newMaxCapacityValue: 35
+    newDamageValue: 0

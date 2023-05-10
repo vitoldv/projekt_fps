@@ -9,7 +9,8 @@ using System.Text;
 using System.Reflection;
 using System;
 using System.IO;
-
+using _Core.Upgrades;
+using System.Collections.Generic;
 
 namespace _Core.Common
 {
@@ -20,6 +21,10 @@ namespace _Core.Common
         public static GameLayers GameLayers => inst.layers;
         [SerializeField] private GameLayers layers;
         [SerializeField] private CollectiblesConfig collectiblesConfig;
+        [SerializeField] private DashUpgradeData dashUpgradeData;
+        [SerializeField] private QuakeUpgradeData quakeUpgradeData;
+        [SerializeField] private List<WeaponUpgradeData> weaponUpgrades;
+
         public WeaponsConfiguration DefaultWeaponConfiguration;
         public static WeaponsConfiguration CurrentWeaponConfiguration { get; private set; }
         public static CollectiblesConfig CollectiblesConfig => inst.collectiblesConfig;
@@ -30,8 +35,11 @@ namespace _Core.Common
         }           
 
         public static PlayerController PlayerController { get; private set; }
-        public static int PlayerPoints = 100;
-
+        public static int RewardPoints
+        {
+            get => inst.currentGameSaveFileData.rewardPoints;
+            set => inst.currentGameSaveFileData.rewardPoints = value;
+        }
 
         [Header("Prefabs")]
         [SerializeField] private PlayerController playerControllerPrefab;
@@ -104,8 +112,7 @@ namespace _Core.Common
             currentArenaManager = GameObject.FindGameObjectWithTag(Tags.ArenaManager).GetComponent<ArenaManager>();
             currentArenaManager.Init(arenaIndex);
             currentArenaManager.UpgradesUI.Init(PlayerController);
-            currentArenaManager.UpgradesUI.WeaponUnlocked += OnWeaponUnlocked;
-            currentArenaManager.UpgradesUI.WeaponUpgraded += OnWeaponUpgraded;
+            currentArenaManager.UpgradesUI.UpgradePurchased += OnUpgradePurchased;         
             currentArenaManager.ArenaFinished += OnArenaFinished;
 
             pauseMenu = Instantiate(pauseMenuPrefab);
@@ -121,12 +128,11 @@ namespace _Core.Common
             HideCursor();
         }
 
-        private void OnArenaFinished(int arenaIndex)
+        private void OnArenaFinished(int arenaIndex, int rewardPoints)
         {
-            currentArenaManager.UpgradesUI.WeaponUnlocked -= OnWeaponUnlocked;
-            currentArenaManager.UpgradesUI.WeaponUpgraded -= OnWeaponUpgraded;
+            RewardPoints += rewardPoints;
+            currentArenaManager.UpgradesUI.UpgradePurchased -= OnUpgradePurchased;
             currentArenaManager.ArenaFinished -= OnArenaFinished;
-
             pauseMenu.ReturnToMenuClicked -= ReturnToMainMenu;
             pauseMenu.ResumeGameClicked -= ResumeGame;
 
@@ -181,6 +187,7 @@ namespace _Core.Common
             var initialTransform = currentArenaManager.PlayerInitialTransform;
             player.transform.SetPositionAndRotation(initialTransform.position, initialTransform.rotation);
             PlayerController = player;
+            ApplyUpgradesToPlayer();
         }
 
         private void CreateHUD()
@@ -190,35 +197,49 @@ namespace _Core.Common
             hud.Show();
         }
 
-        private void OnWeaponUnlocked(WeaponType weaponPurchased)
+        public static void ApplyUpgradesToPlayer()
         {
-            inst.currentGameSaveFileData.playerProgressionData.weaponPurchased |= weaponPurchased;
-            PlayerController.UnlockWeapon(weaponPurchased);
+            // Unlocking skills
+            PlayerController.IsDoubleJumpEnabled = inst.currentGameSaveFileData.playerProgressionData.isDashPurchased;
+            PlayerController.IsDashEnabled = inst.currentGameSaveFileData.playerProgressionData.isDashPurchased;
+            PlayerController.IsQuakeEnabled = inst.currentGameSaveFileData.playerProgressionData.isQuakePurchased;
+            // Unlocking weapons 
+            PlayerController.UnlockedWeapons = inst.currentGameSaveFileData.playerProgressionData.weaponPurchased;
+            // Applying skills levels
+            // Dash
+            var dashLevel = inst.currentGameSaveFileData.playerProgressionData.dashLevelPurchased;
+            if(dashLevel > 0)
+            {
+                var dashLevelData = (DashUpgradeLevel)inst.dashUpgradeData.UpgradeLevels[dashLevel - 1];
+                PlayerController.DashCooldown = dashLevelData.ReloadTime;
+                PlayerController.DashSpeed = dashLevelData.Speed;
+            }
+            // Quake
+            var quakeLevel = inst.currentGameSaveFileData.playerProgressionData.quakeLevelPurchased;
+            if(quakeLevel > 0)
+            {
+                var quakeLevelData = (QuakeUpgradeLevel)inst.quakeUpgradeData.UpgradeLevels[quakeLevel - 1];
+                PlayerController.QuakeCooldown = quakeLevelData.ReloadTime;
+                PlayerController.QuakeDamage = quakeLevelData.Damage;
+                PlayerController.QuakeRadius = quakeLevelData.Radius;
+            }
+            // Applying weapon levels
+            foreach (var weaponUpgrade in inst.weaponUpgrades)
+            {
+                if(PlayerController.UnlockedWeapons.HasFlag(weaponUpgrade.weaponType))
+                {
+                    var level = inst.currentGameSaveFileData.playerProgressionData.GetWeaponLevelForType(weaponUpgrade.weaponType);
+                    if(level > 0)
+                    {
+                        PlayerController.UpgradeWeapon(weaponUpgrade.upgradeLevels[level - 1], weaponUpgrade.weaponType);
+                    }                    
+                }
+            }
         }
 
-        private void OnWeaponUpgraded(WeaponUpgradeData upgradeData, int upgradeLevel)
+        private void OnUpgradePurchased()
         {
-            switch (upgradeData.weaponType)
-            {
-                case WeaponType.Pistol:
-                    inst.currentGameSaveFileData.playerProgressionData.pistolLevelPurchased = upgradeLevel;
-                    break;
-                case WeaponType.Rifle:
-                    inst.currentGameSaveFileData.playerProgressionData.riflelLevelPurchased = upgradeLevel;
-                    break;
-                case WeaponType.Shotgun:
-                    inst.currentGameSaveFileData.playerProgressionData.shotgunLevelPurchased = upgradeLevel;
-                    break;
-                case WeaponType.BFG:
-                    inst.currentGameSaveFileData.playerProgressionData.bfgLevelPurchased = upgradeLevel;
-                    break;
-                case WeaponType.Railgun:
-                    inst.currentGameSaveFileData.playerProgressionData.railgunLevelPurchased = upgradeLevel;
-                    break;
-                default:
-                    break;
-            }
-            PlayerController.UpgradeWeapon(upgradeData.upgradeLevels[upgradeLevel], upgradeData.weaponType);
+            ApplyUpgradesToPlayer();
         }
 
         private void ShowCursor()
