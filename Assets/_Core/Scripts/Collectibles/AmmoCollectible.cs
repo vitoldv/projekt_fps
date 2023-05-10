@@ -18,6 +18,8 @@ namespace _Core.Collectibles
         [SerializeField] private float bigPackScale;
         [SerializeField] private int ammoAmount;
         [SerializeField] private WeaponType weaponType;
+        // SOME RESOURCE TO DIFFERENTIATE ONE TYPE AMMO FROM ANOTHER
+        // [SerializeField] private Texture emblem;
 
         public void Init(Size size, WeaponType weaponType)
         {

@@ -111,8 +111,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e14dc6c642388244a85194793866bec4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponType: 0
+  smallPackScale: 0.5
+  bigPackScale: 1.5
   ammoAmount: 0
+  weaponType: 0
 --- !u!54 &8952662634993922203
 Rigidbody:
   m_ObjectHideFlags: 0

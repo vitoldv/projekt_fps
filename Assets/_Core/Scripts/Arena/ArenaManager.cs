@@ -14,11 +14,8 @@ namespace _Core.Arena
 {
     public class ArenaManager : MonoBehaviour
     {
-        public event Action OnAllEnemiesDefeated;
-        public event Action OnActivePhaseStarted;
-        public event Action OnActivePhaseEnded;
-        public event Action OnArenaFinished;
-
+        public event Action<int> ArenaFinished;
+        
         private int currentWave;
         private ArenaWaveDescription currentArenaDesctiption;
 
@@ -57,12 +54,11 @@ namespace _Core.Arena
             exitRoomTriggerZone.PlayerEnterTriggerZone += OnPlayerEnterExitRoom;
         }
 
-        private void Update()
-        {
-            if (isActivePhase)
-            {
+        private int arenaIndex;
 
-            }
+        public void Init(int arenaIndex)
+        {
+            this.arenaIndex = arenaIndex;
         }
 
         private void StartWave(int waveNum)
@@ -84,10 +80,13 @@ namespace _Core.Arena
                     }
                 }
             }
+            
             for (int i = 0; i < waveEnemiesDefeated.Length; i++)
             {
                 waveEnemiesDefeated[i] = 0;
             }
+
+            print($"WAVE STARTED {waveNum}");
         }
 
         private bool IsWaveEnded()
@@ -107,20 +106,20 @@ namespace _Core.Arena
         {
             entryDoor?.Close();
             isActivePhase = true;
-            OnActivePhaseStarted?.Invoke();
-            currentWave = 1;
-            StartWave(currentWave);
+            currentWave = 0;
+            StartCoroutine(C_StartNewWaveInSeconds(currentWave, waveCooldown));
         }
 
         private void FinishActivePhase()
         {
             exitDoor?.Open();
             isActivePhase = true;
-            OnActivePhaseEnded?.Invoke();
         }
 
         private void OnEnemyDefeated(EnemyBase enemy)
         {
+            enemy.Defeated -= OnEnemyDefeated;
+
             if (enemy is WalkingEnemy)
             {
                 waveEnemiesDefeated[0]++;
@@ -133,22 +132,25 @@ namespace _Core.Arena
             {
                 waveEnemiesDefeated[2]++;
             }
-
+            
             SpawnCollectiblesOnEnemyIfRequired(enemy);
 
+            print($"wave end check {currentWave}");
             if (IsWaveEnded())
             {
+                print("WAVE ENDED");
                 currentWave++;
                 if(currentWave == wavesDescription.Count)
                 {
+                    print("ALL WAVES PASSED");
                     FinishActivePhase();
                 }
                 else
                 {
+                    print($"NEW WAVE STARTING IN {waveCooldown} sec");
                     StartCoroutine(C_StartNewWaveInSeconds(currentWave, waveCooldown));
                 }
             }
-
         }
 
         private void SpawnCollectiblesOnEnemyIfRequired(EnemyBase enemy)
@@ -184,6 +186,7 @@ namespace _Core.Arena
         private void FinishArena()
         {
             print("ARENA FINISHED");
+            ArenaFinished?.Invoke(arenaIndex);
         }
 
         public bool ShouldDropHealthCollectible(float maxPlayerHealth, float currentPlayerHealth, out HealthCollectible.Size healthSize)
@@ -232,27 +235,20 @@ namespace _Core.Arena
         public bool ShouldDropAmmoCollectible(Dictionary<WeaponType, ShootingHandlerState> weaponsState, out WeaponType weapon, out AmmoCollectible.Size ammoSize)
         {
             ammoSize = 0;
+            weapon = 0;
             float weaponChance = Random.Range(0f, 1f);
-            if(weaponChance <= 0.2f)
+            float initialPerWeaponChance = 1.0f / (float)weaponsState.Keys.Count;
+            float perWeaponChance = initialPerWeaponChance;            
+            foreach (var w in weaponsState.Keys)
             {
-                weapon = WeaponType.Railgun;
+                if(weaponChance <= perWeaponChance)
+                {
+                    weapon = w;
+                    break;
+                }
+                perWeaponChance += initialPerWeaponChance;
             }
-            else if (weaponChance <= 0.4f)
-            {
-                weapon = WeaponType.BFG;
-            }
-            else if (weaponChance <= 0.6f)
-            {
-                weapon = WeaponType.Shotgun;
-            }
-            else if (weaponChance <= 0.8f)
-            {
-                weapon = WeaponType.Rifle;
-            }
-            else
-            {
-                weapon = WeaponType.Pistol;
-            }
+
             var weaponState = weaponsState[weapon];
             
             var ammoPercentage = weaponState.CurrentAmmoAmountTotal / weaponState.GunShopCapacity * 3;
@@ -280,5 +276,12 @@ namespace _Core.Arena
                 return false;
             }
         }
+
+        private void OnGUI()
+        {
+            string info = $"Wave: {currentWave}, enemies total: {currentWaveTotalEnemiesCount}, defeated: {currentWaveDefeatedEnemiesCount}";
+            GUI.Label(new Rect(10, 40, 600, 300), info);
+        }
     }
+
 }

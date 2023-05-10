@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using _Core.Interfaces;
+using System.Linq;
 
 namespace _Core.Arena
 {
     public class ArenaLoader : Singleton<ArenaLoader>
     {
-        public static event Action<string> ArenaLoaded;
+        public static event Action<int> ArenaLoaded;
 
         public string currentArenaName;
         [SerializeField] private List<string> arenaNames;
+
+        public static int TotalArenaCount => inst.arenaNames.Count;
 
         public static void LoadArena(int arenaId)
         {
@@ -37,7 +40,7 @@ namespace _Core.Arena
             }
 
             currentArenaName = sceneName;
-            ArenaLoaded?.Invoke(sceneName);
+            ArenaLoaded?.Invoke(arenaNames.IndexOf(sceneName));
         }
 
         private IEnumerator UnloadSceneAsync(string sceneName)

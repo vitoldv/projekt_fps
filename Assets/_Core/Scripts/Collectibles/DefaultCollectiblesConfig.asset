@@ -12,21 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6748ecfd1e7a0654995d0739c2624d51, type: 3}
   m_Name: DefaultCollectiblesConfig
   m_EditorClassIdentifier: 
-  bigHealthPack: 0
-  midHealthPack: 0
-  smallHealthPack: 0
-  pistolSmallAmmoPack: 0
-  pistolMidAmmoPack: 0
-  pistolBigAmmoPack: 0
-  rifleSmallAmmoPack: 0
-  rifleMidAmmoPack: 0
-  rifleBigAmmoPack: 0
-  shotgunSmallAmmoPack: 0
-  shotgunMidAmmoPack: 0
-  shotgunBigAmmoPack: 0
-  bfgSmallAmmoPack: 0
-  bfgMidAmmoPack: 0
-  bfgBigAmmoPack: 0
-  railgunSmallAmmoPack: 0
-  railgunMidAmmoPack: 0
-  railgunBigAmmoPack: 0
+  bigHealthPack: 5
+  midHealthPack: 15
+  smallHealthPack: 25
+  pistolSmallAmmoPack: 1
+  pistolMidAmmoPack: 2
+  pistolBigAmmoPack: 3
+  rifleSmallAmmoPack: 4
+  rifleMidAmmoPack: 5
+  rifleBigAmmoPack: 6
+  shotgunSmallAmmoPack: 1
+  shotgunMidAmmoPack: 2
+  shotgunBigAmmoPack: 3
+  bfgSmallAmmoPack: 1
+  bfgMidAmmoPack: 2
+  bfgBigAmmoPack: 3
+  railgunSmallAmmoPack: 1
+  railgunMidAmmoPack: 2
+  railgunBigAmmoPack: 3

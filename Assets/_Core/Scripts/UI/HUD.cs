@@ -23,6 +23,7 @@ namespace _Core.UI
         [SerializeField] private TextMeshProUGUI dashTimeLeft;
         [SerializeField] private TextMeshProUGUI quakeTimeLeft;
         [SerializeField] private RawImage selectedWeaponIcon;
+        [SerializeField] private TextMeshProUGUI selectedWeaponName;
 
         private PlayerController player;
 
@@ -36,6 +37,7 @@ namespace _Core.UI
             player.WeaponSelected += OnPlayerWeaponSelected;
             player.PlayerDied += OnPlayerDeath;
             hpAmount.text = $"{player.CurrentHP}";
+            OnPlayerWeaponSelected(player.selectedWeapon, player.SelectedWeaponState);
         }
 
         private void OnPlayerHealthValueChanged(float newHealthValue)
@@ -70,6 +72,7 @@ namespace _Core.UI
                 case WeaponType.Railgun: selectedTexture = railgunIconTexture; break;
             }
             selectedWeaponIcon.texture = selectedTexture;
+            selectedWeaponName.text = weapon.ToString();
             OnAmmoValueChanged(shootingHandlerState);
         }
 

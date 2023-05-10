@@ -36,12 +36,15 @@ namespace _Core.Common
         [Header("Prefabs")]
         [SerializeField] private PlayerController playerControllerPrefab;
         [SerializeField] private HUD hudPrefab;
+        [SerializeField] private PauseMenu pauseMenuPrefab;
 
         private GameSaveFileData currentGameSaveFileData;
         private ArenaManager currentArenaManager;
         private MainMenuUIController mainMenu;
         private HUD hud;
-        
+        private PauseMenu pauseMenu;
+
+        private bool isGameActive;
 
         protected override void Initialize()
         {
@@ -56,19 +59,31 @@ namespace _Core.Common
             }
         }
 
-        private void InitializeForMainMenu()
-        {
-
-        }
-
         private void Start()
         {
             ArenaLoader.ArenaLoaded += OnArenaLoaded;
         }
 
+        private void Update()
+        {
+            if(isGameActive)
+            {
+                if(Input.GetKeyDown(KeyCode.Escape))
+                {
+                    if (pauseMenu.IsShown())
+                    {
+                        ResumeGame();
+                    }
+                    else
+                    {
+                        PauseGame();
+                    }                    
+                }                
+            }
+        }
+
         private void OnGameStartInitiated(GameSaveFileData gameSaveFileGuid)
         {
-            print("game started");
             OnSaveFileSelected(gameSaveFileGuid);
         }
 
@@ -81,18 +96,82 @@ namespace _Core.Common
         private void StartGame(GameSaveFileData gameSaveFile)
         {
             mainMenu.GameStarted -= OnGameStartInitiated;
-            ArenaLoader.LoadArena(gameSaveFile.nextArena);
+            StartArena(gameSaveFile.nextArena);
         }
 
-        private void OnArenaLoaded(string arenaName)
+        private void OnArenaLoaded(int arenaIndex)
         {
-            print("arena loaded");
             currentArenaManager = GameObject.FindGameObjectWithTag(Tags.ArenaManager).GetComponent<ArenaManager>();
+            currentArenaManager.Init(arenaIndex);
             currentArenaManager.UpgradesUI.Init(PlayerController);
             currentArenaManager.UpgradesUI.WeaponUnlocked += OnWeaponUnlocked;
             currentArenaManager.UpgradesUI.WeaponUpgraded += OnWeaponUpgraded;
+            currentArenaManager.ArenaFinished += OnArenaFinished;
+
+            pauseMenu = Instantiate(pauseMenuPrefab);
+            pauseMenu.ReturnToMenuClicked += ReturnToMainMenu;
+            pauseMenu.ResumeGameClicked += ResumeGame;
+            pauseMenu.Hide();
+
             CreatePlayer();
             CreateHUD();
+
+            isGameActive = true;
+
+            HideCursor();
+        }
+
+        private void OnArenaFinished(int arenaIndex)
+        {
+            currentArenaManager.UpgradesUI.WeaponUnlocked -= OnWeaponUnlocked;
+            currentArenaManager.UpgradesUI.WeaponUpgraded -= OnWeaponUpgraded;
+            currentArenaManager.ArenaFinished -= OnArenaFinished;
+
+            pauseMenu.ReturnToMenuClicked -= ReturnToMainMenu;
+            pauseMenu.ResumeGameClicked -= ResumeGame;
+
+            // it was the last arena
+            if (arenaIndex == ArenaLoader.TotalArenaCount - 1)
+            {
+                currentGameSaveFileData.nextArena = 0;
+                SaveManager.SaveGameSaveFile(currentGameSaveFileData);
+                ReturnToMainMenu();
+            }
+            else
+            {
+                currentGameSaveFileData.nextArena = arenaIndex + 1;
+                SaveManager.SaveGameSaveFile(currentGameSaveFileData);
+                StartArena(arenaIndex + 1);
+            }
+
+            isGameActive = false;
+        }
+
+        private void StartArena(int arenaIndex)
+        {
+            ArenaLoader.LoadArena(arenaIndex);
+        }
+
+        private void PauseGame()
+        {
+            Time.timeScale = 1f;
+            PlayerController.IsFrozen = true;
+            pauseMenu.Show();
+            ShowCursor();
+        }
+
+        private void ResumeGame()
+        {
+            pauseMenu.Hide();
+            HideCursor();
+            PlayerController.IsFrozen = false;
+            Time.timeScale = 1f;
+        }
+
+        private void ReturnToMainMenu()
+        {
+            SceneManager.LoadScene(MainMenuSceneName);
+            ShowCursor();
         }
 
         private void CreatePlayer()
@@ -100,11 +179,7 @@ namespace _Core.Common
             var player = Instantiate(playerControllerPrefab);
             player.Init(currentGameSaveFileData.playerProgressionData);
             var initialTransform = currentArenaManager.PlayerInitialTransform;
-            print($"Initial transform {initialTransform.position}, {initialTransform.rotation.eulerAngles}");
-            player.gameObject.transform.position= initialTransform.position;
-            player.gameObject.transform.rotation = initialTransform.rotation;
-            //player.transform.SetPositionAndRotation(initialTransform.position, initialTransform.rotation);
-            print($"Initial transform {player.transform.position}, {player.transform.rotation.eulerAngles}");            
+            player.transform.SetPositionAndRotation(initialTransform.position, initialTransform.rotation);
             PlayerController = player;
         }
 
@@ -146,7 +221,17 @@ namespace _Core.Common
             PlayerController.UpgradeWeapon(upgradeData.upgradeLevels[upgradeLevel], upgradeData.weaponType);
         }
 
-        
+        private void ShowCursor()
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+
+        private void HideCursor()
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
 
         #region ZAPISKA_HELPER
 

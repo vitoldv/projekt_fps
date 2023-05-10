@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Core.UI
 {
     public class Screen : MonoBehaviour
     {
-        public void Show()
+        public virtual bool IsShown()
+        {
+            return gameObject.activeSelf;
+        }
+
+        public virtual void Show()
         {
             gameObject.SetActive(true);
         }
 
-        public void Hide()
+        public virtual void Hide()
         {
             gameObject.SetActive(false);
         }

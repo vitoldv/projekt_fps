@@ -13,11 +13,11 @@ GameObject:
   - component: {fileID: 4754828098021514503}
   - component: {fileID: 3495557829195814154}
   - component: {fileID: 8668952829456901892}
-  - component: {fileID: 7793160242712786372}
   - component: {fileID: 399746531731380186}
+  - component: {fileID: 3205453579322918979}
   m_Layer: 11
-  m_Name: Enemy
-  m_TagString: Untagged
+  m_Name: Flying Enemy
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 5070576384458140654}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 0.47297, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -123,26 +123,6 @@ NavMeshAgent:
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &7793160242712786372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5070576384458140654}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5275c7f04c9a654681801c9f126ad9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initialHp: 50
-  corpseLifetime: 2
-  walkSpeed: 1
-  rotationSpeed: 1
-  attackDamage: 5
-  attackDistance: 1
-  firstAttackDelay: 1
-  repeatedAttackDelay: 1.5
 --- !u!95 &399746531731380186
 Animator:
   serializedVersion: 5
@@ -164,3 +144,21 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3205453579322918979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5070576384458140654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63867dbb4d6d01a4cbe91e4ab7b7a14d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationSpeed: 1
+  initialHp: 30
+  speed: 2
+  distanceFromPlayer: 10
+  heightAboveGround: 5
+  raycastDistance: 10

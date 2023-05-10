@@ -23,7 +23,6 @@ namespace _Core.Player
         // params: new quake cooldown value
         public event Action<int> QuakeCooldownValueChanged;
 
-
         [Header("Gameplay Parameters")]
         public float MaxHP;
         public float CurrentHP
@@ -37,6 +36,7 @@ namespace _Core.Player
         }
 
         public Camera Camera => this.camera;
+        public bool IsFrozen { get; set; }
 
         private float currentHpValue;
 
@@ -75,7 +75,9 @@ namespace _Core.Player
         public BulletTrace bulletTracePrefab;
 
         private WeaponType unlockedWeapons = (WeaponType)31;
-        private WeaponType currentWeapon = 0;
+        public WeaponType selectedWeapon = 0;
+
+        public ShootingHandlerState SelectedWeaponState => shootingHandler.State;
 
         [Header("Other settings")]
         [SerializeField] private float isGroundedCheckDistance = 0.1f;
@@ -84,6 +86,7 @@ namespace _Core.Player
         [SerializeField] private int crosshairWidth = 2;
         [SerializeField] private int initialAmmoAmountDebug = 45;
         [SerializeField] private LayerMask checkForGroundMask;
+        [SerializeField] private float initializeFreezeSeconds = 1;
 
         // Components references
         private CharacterController controller;
@@ -109,7 +112,8 @@ namespace _Core.Player
         private float timeSinceLastQuake = 0;
         private float timeSinceLastDash = 0;
 
-        bool isInitialized;
+        private bool isInitialized;
+        
 
         private ShootingHandlerBase shootingHandler;
 
@@ -128,7 +132,8 @@ namespace _Core.Player
 
         public void Init(PlayerProgressionData playerProgressionData)
         {
-            print("Init");
+            CurrentHP = MaxHP;
+
             IsDoubleJumpEnabled = playerProgressionData.isDoubleJumpPurchased;
             IsDashEnabled = playerProgressionData.isDashPurchased;
             IsQuakeEnabled = playerProgressionData.isQuakePurchased;
@@ -137,8 +142,7 @@ namespace _Core.Player
             ReloadShootingHandlers();
             SelectWeapon(WeaponType.Pistol);
 
-            //isInitialized = true;
-            StartCoroutine(SetInitializedInSeconds(3));
+            StartCoroutine(SetInitializedInSeconds(initializeFreezeSeconds));
         }
 
         private IEnumerator SetInitializedInSeconds(float seconds)
@@ -149,7 +153,7 @@ namespace _Core.Player
 
         private void Update()
         {
-            if (!isInitialized) return;
+            if (!isInitialized || IsFrozen) return;
             CheckForGround();
             HandleRotation();
             HandleMovement();
@@ -279,9 +283,9 @@ namespace _Core.Player
 
         private void SelectWeapon(WeaponType weapon)
         {
-            if (unlockedWeapons.HasFlag(weapon) && currentWeapon != weapon)
+            if (unlockedWeapons.HasFlag(weapon) && selectedWeapon != weapon)
             {
-                currentWeapon = weapon;
+                selectedWeapon = weapon;
 
                 if (shootingHandler != null)
                 {
@@ -551,6 +555,7 @@ namespace _Core.Player
 
         public void GetAmmo(int ammoAmount, WeaponType weaponType)
         {
+            print($"PLAYER GOT {ammoAmount} FOR {weaponType}");
             shootingHandlers[weaponType].FillAmmo(ammoAmount);
         }
 

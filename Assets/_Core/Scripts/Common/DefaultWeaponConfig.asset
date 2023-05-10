@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8158bf018b53f894db4f9e480dd1098b, type: 3}
   m_Name: DefaultWeaponConfig
   m_EditorClassIdentifier: 
-  pistolRoundsPerMinute: 180
+  pistolRoundsPerMinute: 500
   pistolReloadTime: 1.5
   pistolCapacity: 21
-  pistolDamage: 3
+  pistolDamage: 5
   pistolBulletTracePrefab: {fileID: 4398664931950164233, guid: 793e5ff2489619342a2899c89f41b9ff,
     type: 3}
   rifleRoundsPerMinute: 300

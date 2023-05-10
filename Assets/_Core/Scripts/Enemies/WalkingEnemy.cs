@@ -21,6 +21,9 @@ namespace _Core.Enemies
         [SerializeField] private float firstAttackDelay;
         [SerializeField] private float repeatedAttackDelay;
 
+        // DEBUG
+        [SerializeField] private EnemyHealth healthBar;
+
         public bool IsAttacking { get; private set; }
         public bool IsWalking => navAgent.enabled;
 
@@ -42,6 +45,7 @@ namespace _Core.Enemies
 
         private void Update()
         {
+            healthBar.SetHealth(this.HP);
             if (IsDead)
             {
                 timer += Time.deltaTime;

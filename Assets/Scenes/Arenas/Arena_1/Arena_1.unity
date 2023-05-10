@@ -2354,6 +2354,16 @@ PrefabInstance:
       propertyPath: p
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1751371191, guid: d8bd9bbaac1a5aa42bb6331e3adc9377, type: 3}
+      propertyPath: enemyPrefab
+      value: 
+      objectReference: {fileID: 7550785150882634967, guid: e8ba5a6c147f6ac4980b250166e32a01,
+        type: 3}
+    - target: {fileID: 1751371191, guid: d8bd9bbaac1a5aa42bb6331e3adc9377, type: 3}
+      propertyPath: flyingEnemyPrefab
+      value: 
+      objectReference: {fileID: 3205453579322918979, guid: 695d3e56e09033545b42ed37298e5a1f,
+        type: 3}
     - target: {fileID: 93150955797435268, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: m_Name
@@ -2363,6 +2373,11 @@ PrefabInstance:
         type: 3}
       propertyPath: totalEnemies
       value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
+        type: 3}
+      propertyPath: waveCooldown
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
@@ -2432,28 +2447,28 @@ PrefabInstance:
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[0].walkingEnemiesCount
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[1].walkingEnemiesCount
-      value: 6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[0].walkingEnemiesSpawnPoints.Array.size
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[1].walkingEnemiesSpawnPoints.Array.size
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[0].walkingEnemiesSpawnPoints.Array.data[0]
       value: 
-      objectReference: {fileID: 7960550243528312351}
+      objectReference: {fileID: 1152563865}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[0].walkingEnemiesSpawnPoints.Array.data[1]
@@ -2468,7 +2483,7 @@ PrefabInstance:
         type: 3}
       propertyPath: wavesDescription.Array.data[1].walkingEnemiesSpawnPoints.Array.data[0]
       value: 
-      objectReference: {fileID: 7960550243528312351}
+      objectReference: {fileID: 1152563865}
     - target: {fileID: 93150955797435269, guid: d8bd9bbaac1a5aa42bb6331e3adc9377,
         type: 3}
       propertyPath: wavesDescription.Array.data[1].walkingEnemiesSpawnPoints.Array.data[1]
@@ -5619,18 +5634,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 7960550243528312349}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7960550243528312351 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2991535876443068630, guid: 9a8364b2a1387774c9641c52be38b3e9,
-    type: 3}
-  m_PrefabInstance: {fileID: 7960550243528312349}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82c743c38299f3746aebf7e184154388, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7982690788881779158
 GameObject:
   m_ObjectHideFlags: 0
