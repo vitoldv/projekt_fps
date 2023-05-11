@@ -7,17 +7,7 @@ namespace _Core.Enemies
     {
         protected override void Die()
         {
-            throw new System.NotImplementedException();
-        }
-
-        private void Awake()
-        {
-
-        }
-
-        private void Update()
-        {
-
+            
         }
     }
 }

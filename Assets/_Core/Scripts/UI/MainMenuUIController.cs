@@ -17,6 +17,7 @@ namespace _Core.UI
         [SerializeField] private Button exitButton;
         [Header("Screens")]
         [SerializeField] private SavesScreen savesScreen;
+        [SerializeField] private SettingsScreen settingsScreen;
 
         private GameSaveFileData[] gameSaveFiles;
         private Screen currentVisibleScreen;
@@ -54,8 +55,6 @@ namespace _Core.UI
             GameStarted?.Invoke(gameSaveFiles.First(f => f.guid == saveFileGuid));
         }
 
-
-
         private void OnStartNewGameButtonClick()
         {
             var newGameSaveFile = new GameSaveFileData();
@@ -74,12 +73,12 @@ namespace _Core.UI
 
         private void OnSettingsButtonClick()
         {
-
+            settingsScreen.Show();
         }
 
         private void OnExitButtonClick()
         {
-
+            Application.Quit();
         }
 
         private void ShowButtons(bool show)

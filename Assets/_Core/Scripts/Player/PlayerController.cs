@@ -215,6 +215,8 @@ namespace _Core.Player
             camera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
         }
 
+        public float piska = 0.5f;
+
         private void HandleMovement()
         {
             if (!isDashing && !isQuaking && !isSliding)

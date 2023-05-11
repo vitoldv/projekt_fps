@@ -315,6 +315,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxHP: 100
+  cameraShake: {fileID: 0}
   movementSpeed: 5
   sprintSpeed: 10
   crouchSpeed: 2.5
@@ -339,11 +340,8 @@ MonoBehaviour:
   roundsPerMinute: 300
   reloadTime: 5
   shotsMax: 30
-  isProjectile: 1
-  projectilePrefab: {fileID: 8392839022747653358, guid: 4675c293cbceac9418a6cf54d6df84dc,
-    type: 3}
-  bulletTracePrefab: {fileID: 4398664931950164233, guid: 793e5ff2489619342a2899c89f41b9ff,
-    type: 3}
+  UnlockedWeapons: 31
+  SelectedWeapon: 0
   isGroundedCheckDistance: 0.1
   enemiesLayer:
     serializedVersion: 2
@@ -354,7 +352,9 @@ MonoBehaviour:
   checkForGroundMask:
     serializedVersion: 2
     m_Bits: 695
+  initializeFreezeSeconds: 1
   shootingPoint: {fileID: 6375288336900827399}
+  piska: 0.5
 --- !u!143 &7292876082884286345
 CharacterController:
   m_ObjectHideFlags: 0
