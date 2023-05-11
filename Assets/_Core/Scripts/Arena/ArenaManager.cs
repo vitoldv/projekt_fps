@@ -82,7 +82,24 @@ namespace _Core.Arena
                     }
                 }
             }
-            
+
+            enemiesToSpawn = wavesDescription[waveNum].flyeingEnemiesCount;
+            countOfSpawnPoints = wavesDescription[waveNum].flyingEnemiesSpawnPoints.Count;
+            if (enemiesToSpawn % countOfSpawnPoints == 0)
+            {
+                var enemiesForPoint = enemiesToSpawn / countOfSpawnPoints;
+                foreach (var spawnPoint in wavesDescription[waveNum].flyingEnemiesSpawnPoints)
+                {
+                    for (int i = 0; i < enemiesForPoint; i++)
+                    {
+                        var enemy = EnemySpawner.SpawnEnemy<FlyingEnemy>();
+                        enemy.Init(GameManager.PlayerController.transform);
+                        enemy.Defeated += OnEnemyDefeated;
+                        spawnPoint.PlaceEnemy(enemy);
+                    }
+                }
+            }
+
             for (int i = 0; i < waveEnemiesDefeated.Length; i++)
             {
                 waveEnemiesDefeated[i] = 0;

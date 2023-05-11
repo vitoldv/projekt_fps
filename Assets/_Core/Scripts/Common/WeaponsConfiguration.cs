@@ -31,7 +31,7 @@ namespace _Core.Common
         public int bfgCapacity;
         public float bfgDamage;
         public float projectileSpeed;
-        public ProjectileBase bfgProjectilePrefab;
+        public BfgProjectile bfgProjectilePrefab;
         public float explosionRadius;
         [Header("Railgun")]
         public float railgunRoundsPerMinute;

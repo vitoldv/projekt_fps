@@ -1,58 +1,37 @@
-using _Core.Common;
 using _Core.Spawners;
 using UnityEngine;
 
-namespace _Core.Player
+namespace _Core.Common
 {
-    public class ProjectileBase : MonoBehaviour, IPoolableObject
+    public abstract class ProjectileBase : MonoBehaviour, IPoolableObject
     {
-        public LayerMask onDestroyLayers;
-        private Vector3 direction;
-        private float speed;
-        private float damage;
-        private float explosionRadius;
+        [SerializeField] protected LayerMask onDestroyLayers;
+        protected Vector3 direction;
+        protected float speed;
+        protected float damage;
 
-        // Start is called before the first frame update
-        public void Init(Vector3 direction, float speed, float damage, float explosionRadius)
+        public void Init(Vector3 direction, float speed, float damage)
         {
             this.direction = direction;
             this.speed = speed;
-            this.explosionRadius = explosionRadius;
             this.damage = damage;
         }
 
-        // Update is called once per frame
-        void Update()
+        protected void Update()
         {
             transform.position += direction * speed * Time.deltaTime;
         }
 
-        private void OnTriggerEnter(Collider other)
+        protected void OnTriggerEnter(Collider other)
         {
             if (Utils.CheckCollision(other, onDestroyLayers))
             {
-                Explode();
+                OnHit(other);
             }
         }
 
-        private void Explode()
+        protected virtual void OnHit(Collider collider)
         {
-            // play some effect
-            var colliders = Physics.OverlapSphere(transform.position, explosionRadius, onDestroyLayers);
-            print($"Colliders num: {colliders.Length}");
-            foreach (var collider in colliders)
-            {
-                print($"Collider: {collider.gameObject.name}");
-                if (collider.gameObject.TryGetComponent<IShootingTarget>(out var shootingTarget))
-                {
-                    Vector3 hitPoint = collider.ClosestPoint(transform.position);
-                    float distanceToObject = Vector3.Distance(hitPoint, transform.position);
-                    // the damage is less the further the object from epicenter
-                    float actualDamage = damage * (1 - distanceToObject / explosionRadius);
-                    print($"shooting target: {actualDamage}, {distanceToObject}");
-                    shootingTarget.OnHit(hitPoint, actualDamage, DamageType.Explosion);
-                }
-            }
             Disable();
         }
 

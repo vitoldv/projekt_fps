@@ -14,7 +14,6 @@ namespace _Core.Enemies
 
         [SerializeField] protected float rotationSpeed;
         [SerializeField] private float initialHp;
-        protected Animator animator;
         protected Collider collider;
         protected NavMeshAgent navAgent;
         protected Transform targetTransform;
@@ -24,7 +23,6 @@ namespace _Core.Enemies
 
         private void Awake()
         {
-            animator = GetComponent<Animator>();
             collider = GetComponent<CapsuleCollider>();
             navAgent = GetComponent<NavMeshAgent>();
         }
@@ -75,7 +73,7 @@ namespace _Core.Enemies
 
         protected abstract void Die();
 
-        public void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
+        public virtual void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
         {
             ReceiveDamage(damage);
         }

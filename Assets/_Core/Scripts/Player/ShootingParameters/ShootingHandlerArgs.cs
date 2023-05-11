@@ -29,6 +29,6 @@ namespace _Core.Player
     {
         public float projectileSpeed;
         public float explosionRadius;
-        public ProjectileBase projectilePrefab;
+        public BfgProjectile projectilePrefab;
     }
 }

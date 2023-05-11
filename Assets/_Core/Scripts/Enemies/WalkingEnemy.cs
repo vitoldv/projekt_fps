@@ -9,6 +9,7 @@ namespace _Core.Enemies
         private readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
         private readonly int IsDeadHash = Animator.StringToHash("IsDead");
         private readonly int IsAttackingHash = Animator.StringToHash("IsAttacking");
+        private readonly int WasHitHash = Animator.StringToHash("WasHit");
 
         [Header("General")]
 
@@ -21,6 +22,7 @@ namespace _Core.Enemies
         [SerializeField] private float firstAttackDelay;
         [SerializeField] private float repeatedAttackDelay;
 
+        [SerializeField] private Animator animator;
         // DEBUG
         [SerializeField] private EnemyHealth healthBar;
 
@@ -108,7 +110,7 @@ namespace _Core.Enemies
         private void StartAttacking()
         {
             IsAttacking = true;
-            //_animator.SetBool(IsAttackingHash, true);
+            animator.SetBool(IsAttackingHash, true);
             timer = 0;
             isFirstAttackMade = false;
             DisableWalking();
@@ -117,7 +119,7 @@ namespace _Core.Enemies
         private void StopAttacking()
         {
             IsAttacking = false;
-            //_animator.SetBool(IsAttackingHash, false);
+            animator.SetBool(IsAttackingHash, false);
             SetSpeed(walkSpeed);
             EnableWalking();
         }
@@ -125,27 +127,33 @@ namespace _Core.Enemies
         protected override void Die()
         {
             IsDead = true;
-            //_animator.SetBool(IsDeadHash, true);
-            DisableCollider();
             DisableWalking();
             StopAttacking();
+            animator.SetBool(IsDeadHash, true);
+            DisableCollider();
             timer = 0;
         }
 
         private void EnableWalking()
         {
             navAgent.enabled = true;
-            //_animator.SetBool(IsWalkingHash, true);
+            animator.SetBool(IsWalkingHash, true);
         }
         private void DisableWalking()
         {
             navAgent.enabled = false;
-            //_animator.SetBool(IsWalkingHash, false);
+            animator.SetBool(IsWalkingHash, false);
         }
 
         private void SetSpeed(float speed)
         {
             navAgent.speed = speed;
+        }
+
+        public override void OnHit(Vector3 hitPoint, float damage, DamageType damageType)
+        {
+            animator.SetTrigger(WasHitHash);
+            base.OnHit(hitPoint, damage, damageType);
         }
     }
 }

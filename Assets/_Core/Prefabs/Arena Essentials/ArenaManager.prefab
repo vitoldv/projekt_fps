@@ -140,8 +140,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e94e667958a56bf448e61c006145c1a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 0}
-  flyingEnemyPrefab: {fileID: 0}
+  walkingEnemyPrefab: {fileID: 7550785150882634967, guid: e8ba5a6c147f6ac4980b250166e32a01,
+    type: 3}
+  flyingEnemyPrefab: {fileID: 1735032738629188271, guid: 695d3e56e09033545b42ed37298e5a1f,
+    type: 3}
+  insectProjectilePrefab: {fileID: 1260529741442436298, guid: b0faddcf6018db849b7872d2f12aac7e,
+    type: 3}
 --- !u!1 &93150955797435268
 GameObject:
   m_ObjectHideFlags: 0
@@ -190,6 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waveCooldown: 0
+  rewardPoints: 0
   wavesDescription: []
   playerSpawnPoint: {fileID: 0}
   entryRoomTriggerZone: {fileID: 0}

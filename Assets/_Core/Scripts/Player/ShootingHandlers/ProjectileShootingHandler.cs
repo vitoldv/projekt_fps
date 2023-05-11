@@ -18,7 +18,7 @@ namespace _Core.Player
             var shootPoint = playerController.Camera.transform.position;
             var shootDir = playerController.Camera.transform.forward;
             var projectile = WeaponSpawner.SpawnBFGProjectile(playerController.Camera.transform.position + playerController.Camera.transform.forward * 2);
-            projectile.Init(shootDir, 2, projectileParams.damage, projectileParams.explosionRadius);
+            projectile.Init(shootDir, 2, projectileParams.damage);
         }
     }
 }
